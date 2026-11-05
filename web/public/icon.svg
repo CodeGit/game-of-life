@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#0f172a"/>
+  <!-- 5x5 grid of 72px cells, centred (offset 76), inside the maskable safe zone -->
+  <g fill="#64748b">
+    <rect x="76" y="74" width="360" height="5"/>
+    <rect x="74" y="76" width="5" height="360"/>
+    <rect x="76" y="146" width="360" height="5"/>
+    <rect x="146" y="76" width="5" height="360"/>
+    <rect x="76" y="218" width="360" height="5"/>
+    <rect x="218" y="76" width="5" height="360"/>
+    <rect x="76" y="290" width="360" height="5"/>
+    <rect x="290" y="76" width="5" height="360"/>
+    <rect x="76" y="362" width="360" height="5"/>
+    <rect x="362" y="76" width="5" height="360"/>
+    <rect x="76" y="434" width="360" height="5"/>
+    <rect x="434" y="76" width="5" height="360"/>
+  </g>
+  <!-- glider -->
+  <g fill="#4ade80">
+    <rect x="224" y="152" width="64" height="64" rx="8"/>
+    <rect x="296" y="224" width="64" height="64" rx="8"/>
+    <rect x="152" y="296" width="64" height="64" rx="8"/>
+    <rect x="224" y="296" width="64" height="64" rx="8"/>
+    <rect x="296" y="296" width="64" height="64" rx="8"/>
+  </g>
+</svg>

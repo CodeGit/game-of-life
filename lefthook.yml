@@ -1,0 +1,18 @@
+pre-commit:
+  parallel: false
+  commands:
+    format:
+      root: web/
+      glob: '*.{ts,tsx,js,css,json,md,html}'
+      run: pnpm prettier --write {staged_files}
+      stage_fixed: true
+    lint:
+      root: web/
+      glob: '*.{ts,tsx}'
+      run: pnpm eslint {staged_files}
+    typecheck:
+      root: web/
+      run: pnpm typecheck
+    test:
+      root: web/
+      run: pnpm test
