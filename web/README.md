@@ -48,6 +48,6 @@ TypeScript is pinned to exactly `6.0.3` (no `~` or `^` in `package.json`) rather
 - TypeScript 7.0 has known bugs that affect this project.
 - `typescript-eslint` only declares support for TypeScript below 6.1, so staying on 6.0.3 also avoids a peer dependency warning.
 
-This limitation should be resolved when Microsoft releases TypeScript 7.1. At that point, remove the pin and check that `typescript-eslint` supports 7.x before upgrading.
+This limitation should be resolved when Microsoft releases TypeScript 7.1. The pin is temporary: once 7.1 is out and `typescript-eslint` supports 7.x (check with `pnpm peers check`), upgrade, switch back to a normal version range, and let dependency bots update TypeScript again.
 
 To install or change the pinned version, use `pnpm add -D --save-exact typescript@<version>`. `package.json` should show the bare version, `"typescript": "6.0.3"`.
