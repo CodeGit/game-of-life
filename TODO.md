@@ -1,7 +1,9 @@
 # TODO
 
 ## v1
-- [ ] Project scaffold (React + TypeScript + Vite, PWA)
+- [x] Project scaffold (React + TypeScript + Vite, PWA, lint, formatting, tests, pre-commit hooks)
+- [ ] Check the PWA in a browser (install, offline) and add the "new version available" prompt
+- [ ] Dev workflow: create `dev` branch, add the CI workflow and protect `main` and `dev` (required checks: ESLint, Prettier, typecheck, tests, build)
 - [ ] Simulation engine with configurable rules (B/S) and a per-world wrap option
 - [ ] Canvas grid: edit cells, run/pause/step
 - [ ] Built-in patterns and presets; RLE import/export
@@ -9,7 +11,7 @@
 - [ ] Save and load worlds per player (guests use local storage)
 - [ ] Share worlds via link
 - [ ] Containerise the app with its database
-- [ ] CI: test and build on every push
+- [ ] CI: GitHub Actions on pull requests and pushes to `dev` and `main`
 - [ ] CD: publish image and deploy
 
 ## Later
