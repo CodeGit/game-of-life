@@ -3,7 +3,7 @@
 ## v1
 - [x] Project scaffold (React + TypeScript + Vite, PWA, lint, formatting, tests, pre-commit hooks)
 - [ ] Check the PWA in a browser (install, offline) and add the "new version available" prompt
-- [ ] Dev workflow: create `dev` branch, add the CI workflow and protect `main` and `dev` (required checks: ESLint, Prettier, typecheck, tests, build)
+- [ ] Dev workflow: merge the CI pull request into `dev`, rename `depandabot.yml` to `dependabot.yml`, and protect `main` only (required checks: ESLint, Prettier, typecheck, tests, build)
 - [ ] Simulation engine with configurable rules (B/S) and a per-world wrap option
 - [ ] Canvas grid: edit cells, run/pause/step
 - [ ] Built-in patterns and presets; RLE import/export
