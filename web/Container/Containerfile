@@ -1,0 +1,9 @@
+FROM node:22-trixie
+
+WORKDIR /web
+
+# Can use alpine as base because C lib version differences with debian are not a concern 
+# in this context. Caddy is the web server for the application
+FROM caddy:alpine 
+
+WORKDIR /web
