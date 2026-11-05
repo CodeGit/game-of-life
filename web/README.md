@@ -30,14 +30,12 @@ The app runs at the URL Vite prints. The service worker only runs in a productio
 
 ## Workflow
 
-- `main` is always releasable; `dev` is where finished work is integrated.
-- Create a `feature/<topic>` branch from `dev`, and open a pull request back into `dev`.
-- A pull request can only merge when ESLint, Prettier, typecheck, tests and build all pass.
-- When `dev` is ready, open a pull request from `dev` into `main`.
+- `main` is always releasable and protected. `dev` is the working branch, where changes are committed and pushed.
+- For larger work, branch from `dev` (`feature/<topic>`) and merge back when ready.
+- To release, open a pull request from `dev` into `main`. It can only merge when ESLint, Prettier, typecheck, tests and build all pass.
+- Merge `dev` into `main` with a merge commit (not squash), so the branches don't diverge.
 
-A [lefthook](https://lefthook.dev) pre-commit hook runs the same checks locally (it installs with `pnpm install`). CI is the authoritative gate, since `git commit --no-verify` skips the hook.
-
-_The branch protection and CI workflow are being set up; until they are in place, treat the above as the intended process._
+A [lefthook](https://lefthook.dev) pre-commit hook runs the same checks locally (it installs with `pnpm install`). CI runs on every push to `dev` and `main`, and is the authoritative gate, since `git commit --no-verify` skips the hook.
 
 ## Dev setup
 
