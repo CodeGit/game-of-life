@@ -11,3 +11,9 @@
     gap: 18px;
   }
 }
+
+.reload-prompt {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+}
