@@ -1,9 +1,21 @@
-FROM node:22-trixie
+FROM docker.io/library/node:22-trixie AS build
 
 WORKDIR /web
+# setup pnpm
+RUN corepack enable
+# copy dependency definition files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
+# copy the rest of the application files (except those excluded by .dockerignore)
+COPY . .
+# build the application
+RUN pnpm build
 
 # Can use alpine as base because C lib version differences with debian are not a concern 
 # in this context. Caddy is the web server for the application
-FROM caddy:alpine 
+FROM docker.io/library/caddy:2-alpine
+COPY Container/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /web/dist /srv
+EXPOSE 80
 
 WORKDIR /web
