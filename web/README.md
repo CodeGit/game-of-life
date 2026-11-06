@@ -49,3 +49,25 @@ TypeScript is pinned to exactly `6.0.3` (no `~` or `^` in `package.json`) rather
 This limitation should be resolved when Microsoft releases TypeScript 7.1. The pin is temporary: once 7.1 is out and `typescript-eslint` supports 7.x (check with `pnpm peers check`), upgrade, switch back to a normal version range, and let dependency bots update TypeScript again.
 
 To install or change the pinned version, use `pnpm add -D --save-exact typescript@<version>`. `package.json` should show the bare version, `"typescript": "6.0.3"`.
+
+### GitHub repository setup
+
+These settings live in the GitHub UI, not in the repository, so a fresh fork or a new repo needs them redone by hand.
+
+1. **Repository visibility:** public. Branch protection and required status checks need a public repository or a paid plan.
+2. **Branches:** create `dev` from `main` and push it. Leave `main` as the default branch.
+3. **CI must run once first:** open a pull request (or push to `dev`) so the five checks exist. A required check can only be chosen in the ruleset after it has run at least once.
+4. **Ruleset for `main` only** (Settings, then Rules, then Rulesets, then New branch ruleset). Target the `main` branch and enable:
+   - Require a pull request before merging, with 0 required approvals (solo project).
+   - Require status checks to pass, and add `lint`, `format:check`, `typecheck`, `test` and `build`.
+   - Block force pushes.
+   - Restrict deletions.
+   - Leave "Require branches to be up to date before merging" **off**, or every release shows as out of date after the merge commit.
+5. **Do not protect `dev`.** Commits and pushes go straight to it.
+6. **Pull request settings** (Settings, then General, then Pull Requests):
+   - Allow merge commits (used for `dev` into `main`).
+   - Leave "Automatically delete head branches" **off**, or `dev` is deleted after each release.
+7. **Dependabot:** `.github/dependabot.yml` is already in the repo and targets `dev`. Check that Dependabot version updates are enabled under Settings, then Advanced Security (the name varies by GitHub version).
+8. **Verify:** a direct `git push` to `main` should be rejected, and a pull request with a failing check should have its merge button blocked.
+
+Still to do when image publishing is added: after the first push to GHCR, set the package to public (the package's settings, then Danger Zone, then Change visibility) so the server can pull without logging in.
