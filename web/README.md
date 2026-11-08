@@ -37,6 +37,61 @@ The app runs at the URL Vite prints. The service worker only runs in a productio
 
 A [lefthook](https://lefthook.dev) pre-commit hook runs the same checks locally (it installs with `pnpm install`). CI runs on every push to `dev` and `main`, and is the authoritative gate, since `git commit --no-verify` skips the hook.
 
+## Game engine
+
+The simulation lives in `src/engine/` as plain TypeScript with no React, so it can be tested on its own and later moved into a Web Worker.
+
+- `types.ts`: `World`, `Rules` and the `RULE_TYPE` values (`CIRCLE`, `SQUARE`, `DIAMOND`, `USER_DEFINED`).
+- `grid.ts`: `createWorld` and `updateWorld`.
+- `rng.ts`: a small seeded random number generator (mulberry32), because JavaScript has no built-in seedable one.
+
+**Data model**
+
+- A world is two flat `Uint8Array`s (`main` and `buffer`, indexed `row * cols + col`) plus its size and a `wrap` flag. A cell is `0` (dead) or the id of the player who owns it (1 to 255), so colours come from the owner.
+- `updateWorld` reads `main`, writes every cell of `buffer`, then swaps the two. No cells are copied.
+- An optional age layer (`ageGrid`) is kept separately from ownership. Survivors age by one each generation up to `maxAge`; newborn and dead cells reset to 0. Colour is worked out when drawing, not stored.
+
+**Rules**
+
+- One ruleset per world. Rules are totalistic: only the count of live neighbours matters, not where they are. `Birth` and `Survival` are lists of counts (Conway's Life is `Birth: [3]`, `Survival: [2, 3]`).
+- The neighbourhood shape is `SQUARE` (every cell within `range`), `CIRCLE` (`r² + c² <= range²`) or `DIAMOND` (`|r| + |c| <= range`). A shape is a small test function on the offset, so adding one is a single function. Circle and diamond are identical at ranges 1 and 2 and differ from range 3.
+- A live cell survives if its count is in `Survival` and keeps its owner. A dead cell is born if its count is in `Birth` and takes the majority owner among its neighbours. Ties are broken with the world's seeded RNG, which is drawn from only when there is a tie, so a seed reproduces a game exactly.
+
+**Tests**
+
+Tests describe worlds as pictures (`.` dead, `#` player 1, digits for other players) using the helpers in `testing.ts`.
+
+- `shapes.test.ts`: the shape of each neighbourhood.
+- `neighbours.test.ts`: neighbour counts, wrapping and per-player tallies.
+- `update.test.ts`: still lifes, a blinker, a glider on a wrapped grid, edges, ownership, tie-breaks, rule shapes and age.
+
+## Container image
+
+The app is built into a small image with a multi-stage `web/Container/Containerfile`: a Node stage runs `pnpm build`, then a `caddy:2-alpine` stage serves the files from `/srv` using `web/Container/Caddyfile`. Image names are fully qualified (`docker.io/library/...`) because Podman does not resolve short names unless a search registry is configured.
+
+- `Caddyfile`: plain HTTP on port 80 (TLS is left to whatever proxies in front). Everything is sent with `Cache-Control: no-cache`, except the hashed `/assets/*` files, which are `immutable` for a year. Unknown paths fall back to `index.html`. This is what lets the service worker update prompt work.
+- `.dockerignore` keeps the host `node_modules` and `dist` out of the build.
+- The install uses `--ignore-scripts` because the `prepare` script runs `lefthook install`, which fails without a git repo.
+
+Build and run from `web/` (the build context is `web/`, not `web/Container/`):
+
+```bash
+podman build -f Container/Containerfile -t life-web .
+podman run --rm -p 8080:80 life-web
+```
+
+`python3 Container/build-from-main.py` switches to `main`, pulls, and runs the same build. It refuses to run with uncommitted changes.
+
+### Release
+
+`.github/workflows/release.yml` runs on every push to `main` (and by hand from the Actions tab). It builds the image for `linux/amd64` and pushes it to GHCR as `ghcr.io/codegit/game-of-life`, tagged `latest` and with the full commit SHA (use the SHA tag to roll back). It uses the built-in `GITHUB_TOKEN`, so there are no secrets to set up. The package is public, so it can be pulled without logging in:
+
+```bash
+podman pull ghcr.io/codegit/game-of-life:latest
+```
+
+Old image versions are not cleaned up automatically.
+
 ## Dev setup
 
 ### TypeScript version
@@ -70,4 +125,5 @@ These settings live in the GitHub UI, not in the repository, so a fresh fork or 
 7. **Dependabot:** `.github/dependabot.yml` is already in the repo and targets `dev`. Check that Dependabot version updates are enabled under Settings, then Advanced Security (the name varies by GitHub version).
 8. **Verify:** a direct `git push` to `main` should be rejected, and a pull request with a failing check should have its merge button blocked.
 
-Still to do when image publishing is added: after the first push to GHCR, set the package to public (the package's settings, then Danger Zone, then Change visibility) so the server can pull without logging in.
+9. **Optional, auto-merge:** tick "Allow auto-merge" under Settings, then General, then Pull Requests. A release PR can then be set to merge itself (merge commit) as soon as the required checks pass.
+10. **Image visibility:** the first push to GHCR (see Container image) creates the package. It inherited the public visibility of this repository, so no change was needed. If it ever shows as private, set it under the package's settings (Danger Zone, then Change visibility), so a server can pull it without logging in.
