@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { circleTest, countNeighbors, diamondTest, squareTest } from './grid';
+import { circleTest, countNeighbors, diamondTest, squareTest } from './world';
 import { fullWorld, worldFrom } from './testing';
 
 const shapes = {

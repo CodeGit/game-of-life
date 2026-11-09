@@ -105,6 +105,18 @@ This limitation should be resolved when Microsoft releases TypeScript 7.1. The p
 
 To install or change the pinned version, use `pnpm add -D --save-exact typescript@<version>`. `package.json` should show the bare version, `"typescript": "6.0.3"`.
 
+### Imports
+
+`@/` is an alias for `src/`, so a file is imported the same way from anywhere, and moving it never breaks its importers:
+
+```ts
+import { Palette } from '@/ui/palette';
+```
+
+Use `@/...` to import across folders, and a relative path (`./draw`) for files next to each other.
+
+The alias has to be set in two places, which must agree: `paths` in `tsconfig.app.json` (for the type checker and editor) and `resolve.alias` in `vite.config.ts` (for the build and Vitest). If only one is set, either `pnpm typecheck` or `pnpm build` and `pnpm test` will fail.
+
 ### GitHub repository setup
 
 These settings live in the GitHub UI, not in the repository, so a fresh fork or a new repo needs them redone by hand.

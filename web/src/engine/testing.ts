@@ -2,7 +2,7 @@
 //
 // Worlds are described as pictures: '.' is a dead cell, '#' is a cell owned by
 // player 1, and the digits '1'-'9' are cells owned by that player.
-import { createWorld, updateWorld } from './grid';
+import { createWorld, updateWorld } from './world';
 import { RULE_TYPE } from './types';
 import type { Rules, World } from './types';
 

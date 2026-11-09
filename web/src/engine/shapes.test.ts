@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { circleTest, diamondTest, squareTest } from './grid';
+import { circleTest, diamondTest, squareTest } from './world';
 
 // Draws a neighbourhood around a cell: 'o' is the cell, '#' is a neighbour, '.' is not.
 function draw(test: (r: number, c: number) => boolean, range: number): string[] {
