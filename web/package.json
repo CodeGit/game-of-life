@@ -17,6 +17,10 @@
     "prepare": "lefthook install"
   },
   "dependencies": {
+    "@mantine/core": "^9.7.5",
+    "@mantine/form": "^9.8.0",
+    "@mantine/hooks": "^9.7.5",
+    "@mantine/notifications": "^9.7.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
@@ -36,6 +40,9 @@
     "globals": "^17.13.0",
     "jsdom": "^30.1.3",
     "lefthook": "^2.2.2",
+    "postcss": "^8.5.32",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
     "prettier": "^3.9.10",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.72.0",

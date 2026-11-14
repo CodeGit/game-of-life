@@ -1,11 +1,68 @@
-import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import { renderWithMantine } from '@/test-utils';
+import { MODE_MESSAGES, MODE } from '@/game/mode';
 import App from './App';
+
+async function startGame(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByText('Game'));
+  await user.click(await screen.findByText('New Game'));
+  await user.click(await screen.findByRole('button', { name: /submit|start/i }));
+}
 
 describe('App', () => {
   it('shows the title', () => {
-    render(<App />);
+    renderWithMantine(<App />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/game of life/i);
+  });
+
+  it('starts with no game and the ready message', () => {
+    const { container } = renderWithMantine(<App />);
+    expect(container.querySelector('canvas')).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByText(MODE_MESSAGES[MODE.GAME_READY])).toBeInTheDocument();
+  });
+
+  it('Game > New Game opens the form', async () => {
+    const user = userEvent.setup();
+    renderWithMantine(<App />);
+    await user.click(screen.getByText('Game'));
+    await user.click(await screen.findByText('New Game'));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('Cancel closes the form without starting a game', async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithMantine(<App />);
+    await user.click(screen.getByText('Game'));
+    await user.click(await screen.findByText('New Game'));
+    await user.click(await screen.findByRole('button', { name: /cancel/i }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(container.querySelector('canvas')).toBeNull();
+  });
+
+  it('starting a game closes the form and shows the board', async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithMantine(<App />);
+    await startGame(user);
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+    // The default world is 20 x 20 cells, so the canvas is square and a whole number of cells wide.
+    const width = Number(canvas?.getAttribute('width'));
+    expect(width).toBeGreaterThan(0);
+    expect(width % 20).toBe(0);
+    expect(canvas).toHaveAttribute('height', String(width));
+  });
+
+  it('Game > End Game removes the board', async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithMantine(<App />);
+    await startGame(user);
+    await waitFor(() => expect(container.querySelector('canvas')).not.toBeNull());
+    await user.click(screen.getByText('Game'));
+    await user.click(await screen.findByText('End Game'));
+    await waitFor(() => expect(container.querySelector('canvas')).toBeNull());
   });
 });
