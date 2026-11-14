@@ -65,6 +65,37 @@ Tests describe worlds as pictures (`.` dead, `#` player 1, digits for other play
 - `neighbours.test.ts`: neighbour counts, wrapping and per-player tallies.
 - `update.test.ts`: still lifes, a blinker, a glider on a wrapped grid, edges, ownership, tie-breaks, rule shapes and age.
 
+## User interface
+
+The UI is in `src/ui/` and uses [Mantine](https://mantine.dev) (`AppShell` for the layout). Player colours are separate from the Mantine theme: they come from `Palette` (OKLCH, 8 players with 8 age shades each).
+
+**State.** A game's options (size, wrap, age, lifespan, density, seed) cannot change while it is running, so the world is created once, when a game starts, from the New game form. The world is mutated in place, so a redraw has to be triggered explicitly (for example with a generation counter). Anything that can be calculated from state, such as the message for a mode, is worked out while rendering, not stored.
+
+**Layout**
+
+```
+┌─────────────────────────────────────────────┐
+│ ☰  Game of Life        [Game ▾]   [Sign in] │  header
+├────────┬────────────────────────────────────┤
+│Sidebar │                                    │
+│ mode   │               canvas               │
+│ stats  │                                    │
+├────────┴────────────────────────────────────┤
+│ ▶ ⏸ ⏹ ⏭   speed ──●──    − 100% +   Gen 42 │  footer
+└─────────────────────────────────────────────┘
+```
+
+- **Header:** the title, the Game menu (New game, Open, Save, End game) and the account button (sign in and out). These are infrequent actions. The burger button shows only on narrow screens.
+- **Footer (play bar):** run, pause, stop and step, the speed slider, zoom in and out, and the generation counter. These are used constantly and act on the board, so they sit next to it.
+- **Sidebar:** context panels that change with the game: the mode message, live cells per player, the player's colour and remaining budget, and later the player list and invite.
+- **New game form:** a modal opened from the Game menu, not a panel. It is used once per game and blocks the rest of the UI while open.
+
+**Planned rules** (not built yet)
+
+- Randomising is a setup option in New game (density and seed), not a mid-game action. Non-destructive: it only fills dead cells.
+- Each player gets a fixed budget of new cells to place, by hand or at random, which acts as a catch-up mechanism. The budget lives in a game layer above the engine, not in `World`.
+- Placing happens while paused. The game can pause by hand or automatically at a checkpoint (every N generations, or on a condition) for a timed placement phase.
+
 ## Container image
 
 The app is built into a small image with a multi-stage `web/Container/Containerfile`: a Node stage runs `pnpm build`, then a `caddy:2-alpine` stage serves the files from `/srv` using `web/Container/Caddyfile`. Image names are fully qualified (`docker.io/library/...`) because Podman does not resolve short names unless a search registry is configured.

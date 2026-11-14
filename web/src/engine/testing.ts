@@ -6,20 +6,20 @@ import { createWorld, updateWorld } from './world';
 import { RULE_TYPE } from './types';
 import type { Rules, World } from './types';
 
-export type WorldOptions = { wrap?: boolean; age?: boolean; maxAge?: number; seed?: number };
+export type PictureOptions = { wrap?: boolean; age?: boolean; lifespan?: number; seed?: number };
 
-export function worldFrom(picture: string[], options: WorldOptions = {}): World {
+export function worldFrom(picture: string[], options: PictureOptions = {}): World {
   const rows = picture.length;
   const cols = picture[0]?.length ?? 0;
-  const world = createWorld(
-    'test',
+  const world = createWorld({
+    id: 'test',
     rows,
     cols,
-    options.age ?? false,
-    options.wrap ?? false,
-    options.maxAge ?? 255,
-    options.seed ?? 1,
-  );
+    age: options.age ?? false,
+    wrap: options.wrap ?? false,
+    lifespan: options.lifespan ?? 255,
+    seed: options.seed ?? 1,
+  });
 
   picture.forEach((line, row) => {
     if (line.length !== cols)
@@ -33,7 +33,7 @@ export function worldFrom(picture: string[], options: WorldOptions = {}): World 
 }
 
 // A world where every cell is alive and owned by player 1.
-export function fullWorld(rows: number, cols: number, options: WorldOptions = {}): World {
+export function fullWorld(rows: number, cols: number, options: PictureOptions = {}): World {
   const world = worldFrom(
     Array.from({ length: rows }, () => '.'.repeat(cols)),
     options,

@@ -212,7 +212,7 @@ describe('age', () => {
 
   it('dies when it reaches its lifespan', () => {
     const block = ['....', '.##.', '.##.', '....'];
-    const world = worldFrom(block, { age: true, maxAge: 3 });
+    const world = worldFrom(block, { age: true, lifespan: 3 });
 
     step(world, conway, 2);
     expect(pictureOf(world)).toEqual(block); // ages 0, 1, 2: still alive

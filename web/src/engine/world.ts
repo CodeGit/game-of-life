@@ -1,6 +1,6 @@
 import mulberry32 from './rng';
 import { RULE_TYPE } from './types';
-import type { AgeGrid, Grid, Rules, World } from './types';
+import type { AgeGrid, Grid, Rules, World, WorldOptions } from './types';
 
 function getWinners(neighbours: NeighbourCount): number[] {
   const maxCount = Math.max(...Object.values(neighbours.perPlayerCount));
@@ -20,15 +20,31 @@ function createAgeGrid(rows: number, cols: number): AgeGrid {
   return grid;
 }
 
-export function createWorld(
-  id: string,
-  rows: number,
-  cols: number,
-  age: boolean,
-  wrap: boolean,
+export function randomiseWorld(world: World, density: number, players = 1): void {
+  // adds random live cells to the world based on the given density and number of players.
+  const { rows, cols, main } = world;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const i = row * cols + col;
+      if (main[i] !== 0) continue; // Does not overwrite existing living cells
+      if (world.rng() < density) {
+        main[i] = Math.floor(world.rng() * players) + 1;
+      }
+    }
+  }
+}
+
+export function createWorld({
+  id,
+  rows,
+  cols,
+  age,
+  wrap,
   lifespan = 255,
-  seed: number = Date.now(),
-): World {
+  seed = Date.now(),
+  density,
+  players = 1,
+}: WorldOptions): World {
   const main = createGrid(rows, cols);
   const buffer = createGrid(rows, cols);
   const ageGrid = age ? createAgeGrid(rows, cols) : null;
@@ -45,6 +61,7 @@ export function createWorld(
     lifespan,
     rangeLimit: Math.floor(Math.min(rows, cols) / 2), // Maximum range for neighborhood calculations
   };
+  if (density !== undefined) randomiseWorld(world, density, players);
   return world;
 }
 
