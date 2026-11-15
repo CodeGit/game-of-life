@@ -4,7 +4,7 @@ import {
   AppShell,
   Container,
   Group,
-  Select,
+  NativeSelect,
   Slider,
   Stack,
   Text,
@@ -91,17 +91,20 @@ export function Footer({
             </Group>
           </Group>
           <Group wrap="nowrap">
-            <Select
+            <NativeSelect
               flex={1}
               aria-label="World rules"
-              placeholder="Select rules"
-              data={rulesData}
-              value={currentId}
-              onChange={(id) => {
+              data={
+                currentId
+                  ? rulesData
+                  : [{ value: '', label: 'Custom rules', disabled: true }, ...rulesData]
+              }
+              value={currentId ?? ''}
+              onChange={(event) => {
+                const id = event.currentTarget.value;
                 const preset = id ? findPreset(id) : undefined;
                 if (preset) onRulesChange(preset.rules);
               }}
-              allowDeselect={false}
               disabled={!allowed.changeRules}
             />
             <ActionIconGroup>

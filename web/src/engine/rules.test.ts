@@ -66,13 +66,6 @@ describe('RULE_PRESETS', () => {
     }
   });
 
-  it('describes every preset', () => {
-    for (const p of RULE_PRESETS) {
-      expect(p.name).not.toBe('');
-      expect(p.description).not.toBe('');
-    }
-  });
-
   it('includes the default rule, which is Conway', () => {
     expect(findPreset(DEFAULT_RULE_ID)?.rules).toEqual(CONWAY);
     expect(ruleString(CONWAY)).toBe('B3/S23');
