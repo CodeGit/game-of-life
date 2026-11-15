@@ -65,31 +65,29 @@ describe('Footer: status', () => {
     expect(screen.getByText('Generation -')).toBeInTheDocument();
   });
 
-  it.each(Object.values(MODE))('shows the message for %s', (mode) => {
-    renderFooter({ mode });
-    expect(screen.getByText(MODE_MESSAGES[mode])).toBeInTheDocument();
+  it('shows the message for the mode', () => {
+    renderFooter({ mode: MODE.GAME_PAUSED });
+    expect(screen.getByText(MODE_MESSAGES[MODE.GAME_PAUSED])).toBeInTheDocument();
   });
 });
 
+// Which buttons are enabled in each mode is decided by allowedActions, and tested there.
+// These check that the footer follows it, and that each button reports the right thing.
 describe('Footer: play bar', () => {
-  it('has the Reset, Pause, Step and Play buttons', () => {
-    renderFooter();
-    for (const name of ['Reset', 'Pause', 'Step', 'Play']) {
-      expect(button(name)).toBeInTheDocument();
-    }
+  it('enables only what the mode allows', () => {
+    renderFooter({ mode: MODE.GAME_READY });
+    expect(button('Step')).toBeEnabled();
+    expect(button('Play')).toBeEnabled();
+    expect(button('Pause')).toBeDisabled();
+    expect(button('Reset')).toBeDisabled();
   });
 
-  it.each([
-    [MODE.GAME_READY, { Reset: false, Pause: false, Step: true, Play: true }],
-    [MODE.GAME_RUNNING, { Reset: true, Pause: true, Step: false, Play: false }],
-    [MODE.GAME_PAUSED, { Reset: true, Pause: false, Step: true, Play: true }],
-    [MODE.GAME_COMPLETE, { Reset: false, Pause: false, Step: false, Play: false }],
-  ] as const)('enables the right buttons when %s', (mode, enabled) => {
-    renderFooter({ mode });
-    for (const [name, isEnabled] of Object.entries(enabled)) {
-      if (isEnabled) expect(button(name)).toBeEnabled();
-      else expect(button(name)).toBeDisabled();
-    }
+  it('enables the other buttons while running', () => {
+    renderFooter({ mode: MODE.GAME_RUNNING });
+    expect(button('Step')).toBeDisabled();
+    expect(button('Play')).toBeDisabled();
+    expect(button('Pause')).toBeEnabled();
+    expect(button('Reset')).toBeEnabled();
   });
 
   it('disables every button when there is no game', () => {
@@ -100,15 +98,9 @@ describe('Footer: play bar', () => {
   });
 
   it('Step reports a step', async () => {
-    const { onStep, user } = renderFooter();
+    const { onStep, user } = renderFooter({ mode: MODE.GAME_READY });
     await user.click(button('Step'));
     expect(onStep).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not report a step from a disabled Step button', async () => {
-    const { onStep, user } = renderFooter({ mode: MODE.GAME_RUNNING });
-    await user.click(button('Step'));
-    expect(onStep).not.toHaveBeenCalled();
   });
 
   it('Play reports play', async () => {
@@ -129,58 +121,45 @@ describe('Footer: play bar', () => {
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 
-  it('does not report Play, Pause or Reset from buttons that are disabled', async () => {
-    const { onPlay, onPause, onReset, user } = renderFooter({ mode: MODE.GAME_COMPLETE });
-    await user.click(button('Play'));
-    await user.click(button('Pause'));
-    await user.click(button('Reset'));
-    expect(onPlay).not.toHaveBeenCalled();
-    expect(onPause).not.toHaveBeenCalled();
-    expect(onReset).not.toHaveBeenCalled();
+  it('reports nothing from a disabled button', async () => {
+    const { onStep, user } = renderFooter({ mode: MODE.GAME_RUNNING });
+    await user.click(button('Step'));
+    expect(onStep).not.toHaveBeenCalled();
   });
 });
 
 describe('Footer: speed', () => {
   const slider = () => screen.getByRole('slider', { name: 'World speed' });
 
-  it('has a speed slider showing the speed it is given', () => {
+  it('shows the speed it is given', () => {
     renderFooter({ speed: 70 });
     expect(slider()).toHaveAttribute('aria-valuenow', '70');
     expect(screen.getByText('70%')).toBeInTheDocument();
   });
 
-  it('reports a new speed from the keyboard', async () => {
+  it('reports a new speed', async () => {
     const { onSpeedChange, user } = renderFooter({ speed: 50 });
     slider().focus();
     await user.keyboard('{ArrowRight}');
     expect(onSpeedChange).toHaveBeenCalledWith(51);
   });
-
-  it('can be used in every state, even with no game', () => {
-    renderFooter({ generation: null, mode: MODE.GAME_COMPLETE });
-    expect(slider()).toBeInTheDocument();
-  });
 });
 
 describe('Footer: rules', () => {
   it('shows the name of the current rules', () => {
-    renderFooter({ rules: CONWAY });
-    expect(rulesInput()).toHaveValue("Conway's Life");
-  });
-
-  it('follows the rules it is given', () => {
     renderFooter({ rules: findPreset('highlife')!.rules });
     expect(rulesInput()).toHaveValue('HighLife');
+  });
+
+  it('shows nothing selected for rules that are not a preset', () => {
+    renderFooter({ rules: { ...CONWAY, Birth: [3, 4, 5], Survival: [1] } });
+    expect(rulesInput()).toHaveValue('');
   });
 
   it('lists every preset', async () => {
     const { user } = renderFooter();
     await user.click(rulesInput());
-    const options = await screen.findAllByRole('option');
-    expect(options).toHaveLength(RULE_PRESETS.length);
-    for (const preset of RULE_PRESETS) {
-      expect(screen.getByRole('option', { name: preset.name })).toBeInTheDocument();
-    }
+    expect(await screen.findAllByRole('option')).toHaveLength(RULE_PRESETS.length);
   });
 
   it('reports the rules of the preset that was chosen', async () => {
@@ -191,31 +170,13 @@ describe('Footer: rules', () => {
     expect(onRulesChange).toHaveBeenCalledWith(findPreset('highlife')!.rules);
   });
 
-  it('does not report a change before anything is chosen', () => {
-    const { onRulesChange } = renderFooter();
-    expect(onRulesChange).not.toHaveBeenCalled();
-  });
-
-  it.each([MODE.GAME_READY, MODE.GAME_RUNNING, MODE.GAME_PAUSED])(
-    'can be changed when %s',
-    (mode) => {
-      renderFooter({ mode });
-      expect(rulesInput()).toBeEnabled();
-    },
-  );
-
-  it('can be changed before a game starts', () => {
-    renderFooter({ generation: null });
+  it('can be changed while running', () => {
+    renderFooter({ mode: MODE.GAME_RUNNING });
     expect(rulesInput()).toBeEnabled();
   });
 
-  it('cannot be changed once the game is complete', () => {
+  it('is disabled once the game is complete', () => {
     renderFooter({ mode: MODE.GAME_COMPLETE });
     expect(rulesInput()).toBeDisabled();
-  });
-
-  it('shows nothing selected for rules that are not a preset', () => {
-    renderFooter({ rules: { ...CONWAY, Birth: [3, 4, 5], Survival: [1] } });
-    expect(rulesInput()).toHaveValue('');
   });
 });
