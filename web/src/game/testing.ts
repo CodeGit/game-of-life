@@ -28,5 +28,13 @@ export function setupGame(start?: WorldOptions) {
 }
 
 export const cellsOf = (world: World | null) => [...(world?.main ?? [])];
-export const allAlive = (world: World | null) => cellsOf(world).every((owner) => owner > 0);
-export const allDead = (world: World | null) => cellsOf(world).every((owner) => owner === 0);
+// No world has no cells, which is neither all alive nor all dead, so a missing world fails
+// these checks instead of passing them without anything to look at.
+export const allAlive = (world: World | null) => {
+  const cells = cellsOf(world);
+  return cells.length > 0 && cells.every((owner) => owner > 0);
+};
+export const allDead = (world: World | null) => {
+  const cells = cellsOf(world);
+  return cells.length > 0 && cells.every((owner) => owner === 0);
+};
