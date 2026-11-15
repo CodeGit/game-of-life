@@ -1,9 +1,10 @@
 // custom game hook for managing game state and actions
 import { useState } from 'react';
 import { MODE, MODE_MESSAGES } from '@/game/mode';
-import { createWorld } from '@/engine/world';
+import { CONWAY } from '@/engine/rules';
+import { createWorld, updateWorld } from '@/engine/world';
 import { MENU_ACTIONS } from '@/ui/header/menuActions';
-import type { World, WorldOptions } from '@/engine/types';
+import type { Rules, World, WorldOptions } from '@/engine/types';
 import type { Mode } from '@/game/mode';
 import type { MenuAction } from '@/ui/header/menuActions';
 
@@ -11,6 +12,17 @@ export function useGameMode() {
   const [world, setWorld] = useState<World | null>(null);
   const [mode, setMode] = useState<Mode>(MODE.GAME_READY);
   const [isNewGameFormVisible, setIsNewGameFormVisible] = useState(false);
+  // The rules can be changed at any time, even while a game is running: they apply from the next step.
+  const [rules, setRules] = useState<Rules>(CONWAY);
+
+  // Footer: advance one generation. updateWorld changes the world in place, so a shallow copy
+  // gives React a new reference to redraw from (the copy shares the same cell arrays).
+  function stepGame() {
+    if (!world) return;
+    updateWorld(world, rules);
+    setWorld({ ...world });
+    setMode(MODE.GAME_PAUSED);
+  }
 
   // Menu: New game. Opens the form; the form calls startGame when the user presses Start.
   function showNewGameForm() {
@@ -31,7 +43,7 @@ export function useGameMode() {
   function endGame() {
     // TODO: confirm first if the game has not been saved.
     setWorld(null);
-    setMode(MODE.GAME_READY);
+    setMode(MODE.GAME_COMPLETE);
   }
 
   // Menu: Load game.
@@ -64,14 +76,15 @@ export function useGameMode() {
 
   return {
     world,
-    setWorld,
     mode,
-    setMode,
     message: MODE_MESSAGES[mode],
     showNewGameForm,
     hideNewGameForm,
     isNewGameFormVisible,
     startGame,
     handleMenuAction,
+    rules,
+    setRules,
+    stepGame,
   };
 }

@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { WorldOptions } from '@/engine/types';
+import { CONWAY, findPreset } from '@/engine/rules';
 import { MENU_ACTIONS } from '@/ui/header/menuActions';
 import type { MenuAction } from '@/ui/header/menuActions';
 import { MODE, MODE_MESSAGES } from './mode';
@@ -73,7 +74,7 @@ describe('useGameMode: other menu actions', () => {
     act(() => result.current.startGame(options));
     act(() => result.current.handleMenuAction(MENU_ACTIONS.END_GAME));
     expect(result.current.world).toBeNull();
-    expect(result.current.mode).toBe(MODE.GAME_READY);
+    expect(result.current.mode).toBe(MODE.GAME_COMPLETE);
   });
 
   it('Save and Load are placeholders that leave the game alone', () => {
@@ -90,5 +91,72 @@ describe('useGameMode: other menu actions', () => {
     expect(() => result.current.handleMenuAction('nonsense' as MenuAction)).toThrow(
       /Unhandled menu action/,
     );
+  });
+});
+
+describe('useGameMode: stepping', () => {
+  it('does nothing without a game', () => {
+    const { result } = renderHook(() => useGameMode());
+    act(() => result.current.stepGame());
+    expect(result.current.world).toBeNull();
+  });
+
+  it('moves the game on one generation each time', () => {
+    const { result } = renderHook(() => useGameMode());
+    act(() => result.current.startGame(options));
+    expect(result.current.world?.generation).toBe(0);
+    act(() => result.current.stepGame());
+    expect(result.current.world?.generation).toBe(1);
+    act(() => result.current.stepGame());
+    expect(result.current.world?.generation).toBe(2);
+  });
+
+  it('gives React a new world each step, so the board is redrawn', () => {
+    const { result } = renderHook(() => useGameMode());
+    act(() => result.current.startGame(options));
+    const before = result.current.world;
+    act(() => result.current.stepGame());
+    expect(result.current.world).not.toBe(before);
+  });
+
+  it('applies the rules to the cells', () => {
+    const { result } = renderHook(() => useGameMode());
+    // A full wrapped board: every cell has 8 neighbours, so under Conway they all die.
+    act(() => result.current.startGame({ ...options, wrap: true, density: 1 }));
+    act(() => result.current.stepGame());
+    expect(result.current.world?.main.every((owner) => owner === 0)).toBe(true);
+  });
+});
+
+describe('useGameMode: rules', () => {
+  it('start as Conway', () => {
+    const { result } = renderHook(() => useGameMode());
+    expect(result.current.rules).toEqual(CONWAY);
+  });
+
+  it('can be chosen before a game starts', () => {
+    const { result } = renderHook(() => useGameMode());
+    act(() => result.current.setRules(findPreset('no-death')!.rules));
+    act(() => result.current.startGame({ ...options, wrap: true, density: 1 }));
+    act(() => result.current.stepGame());
+    expect(result.current.world?.main.every((owner) => owner === 1)).toBe(true);
+  });
+
+  it('can be changed between steps of a running game', () => {
+    const { result } = renderHook(() => useGameMode());
+    act(() => result.current.startGame({ ...options, wrap: true, density: 1 }));
+    act(() => result.current.setRules(findPreset('no-death')!.rules));
+    act(() => result.current.stepGame());
+    expect(result.current.world?.main.every((owner) => owner === 1)).toBe(true);
+    act(() => result.current.setRules(CONWAY));
+    act(() => result.current.stepGame());
+    expect(result.current.world?.main.every((owner) => owner === 0)).toBe(true);
+  });
+
+  it('are kept when a new game starts', () => {
+    const { result } = renderHook(() => useGameMode());
+    act(() => result.current.setRules(findPreset('seeds')!.rules));
+    act(() => result.current.startGame(options));
+    expect(result.current.rules).toEqual(findPreset('seeds')!.rules);
   });
 });

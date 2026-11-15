@@ -65,4 +65,34 @@ describe('App', () => {
     await user.click(await screen.findByText('End Game'));
     await waitFor(() => expect(container.querySelector('canvas')).toBeNull());
   });
+
+  it('Step moves the game on one generation', async () => {
+    const user = userEvent.setup();
+    renderWithMantine(<App />);
+    expect(screen.getByText('Generation -')).toBeInTheDocument();
+    await startGame(user);
+    expect(await screen.findByText('Generation 0')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Step' }));
+    expect(screen.getByText('Generation 1')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Step' }));
+    expect(screen.getByText('Generation 2')).toBeInTheDocument();
+  });
+
+  it('the play bar is disabled until a game starts', async () => {
+    const user = userEvent.setup();
+    renderWithMantine(<App />);
+    expect(screen.getByRole('button', { name: 'Step' })).toBeDisabled();
+    await startGame(user);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Step' })).toBeEnabled());
+  });
+
+  it('Game > End Game disables the play bar again', async () => {
+    const user = userEvent.setup();
+    renderWithMantine(<App />);
+    await startGame(user);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Step' })).toBeEnabled());
+    await user.click(screen.getByText('Game'));
+    await user.click(await screen.findByText('End Game'));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Step' })).toBeDisabled());
+  });
 });

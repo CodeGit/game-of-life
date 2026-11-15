@@ -6,7 +6,7 @@ import { afterEach, vi } from 'vitest';
 // Vitest has no globals, so Testing Library cannot unmount components by itself.
 afterEach(cleanup);
 
-// jsdom has no matchMedia or ResizeObserver, which Mantine uses.
+// jsdom has no matchMedia, ResizeObserver or scrollIntoView, which Mantine uses.
 window.matchMedia ??= (query: string) =>
   ({
     matches: false,
@@ -14,6 +14,8 @@ window.matchMedia ??= (query: string) =>
     addEventListener: () => {},
     removeEventListener: () => {},
   }) as unknown as MediaQueryList;
+
+Element.prototype.scrollIntoView ??= () => {};
 
 globalThis.ResizeObserver ??= class {
   observe() {}
