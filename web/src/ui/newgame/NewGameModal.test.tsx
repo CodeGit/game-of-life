@@ -57,3 +57,86 @@ describe('NewGameModal', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 });
+
+describe('NewGameModal: fields', () => {
+  it('shows the default values', () => {
+    renderModal(true);
+    expect(screen.getByLabelText(/world name/i)).toHaveValue('The World');
+    expect(screen.getByLabelText('Rows')).toHaveValue('20');
+    expect(screen.getByLabelText('Columns')).toHaveValue('20');
+    expect(screen.getByLabelText(/wraps around/i)).toBeChecked();
+    expect(screen.getByLabelText(/cells age/i)).toBeChecked();
+  });
+
+  it('passes edited values to onStart', async () => {
+    const { onStart, user } = renderModal(true);
+    const name = screen.getByLabelText(/world name/i);
+    await user.clear(name);
+    await user.type(name, 'Mars');
+    const rows = screen.getByLabelText('Rows');
+    await user.clear(rows);
+    await user.type(rows, '12');
+    const cols = screen.getByLabelText('Columns');
+    await user.clear(cols);
+    await user.type(cols, '30');
+    await user.click(screen.getByLabelText(/wraps around/i));
+    await user.click(screen.getByLabelText(/cells age/i));
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+    expect(onStart).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'Mars', rows: 12, cols: 30, wrap: false, age: false }),
+    );
+  });
+
+  it('disables the lifespan slider while cells do not age', async () => {
+    const { user } = renderModal(true);
+    const lifespan = () => screen.getAllByRole('slider')[0];
+    expect(lifespan()).not.toHaveAttribute('data-disabled');
+    await user.click(screen.getByLabelText(/cells age/i));
+    expect(lifespan()).toHaveAttribute('data-disabled');
+    await user.click(screen.getByLabelText(/cells age/i));
+    expect(lifespan()).not.toHaveAttribute('data-disabled');
+  });
+
+  it('will not start a game without a name', async () => {
+    const { onStart, user } = renderModal(true);
+    await user.clear(screen.getByLabelText(/world name/i));
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+    expect(onStart).not.toHaveBeenCalled();
+    expect(screen.getByText(/must have a name/i)).toBeInTheDocument();
+  });
+
+  it('treats a name of only spaces as missing', async () => {
+    const { onStart, user } = renderModal(true);
+    const name = screen.getByLabelText(/world name/i);
+    await user.clear(name);
+    await user.type(name, '   ');
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('Reset puts every field back to its default', async () => {
+    const { user } = renderModal(true);
+    const name = screen.getByLabelText(/world name/i);
+    await user.clear(name);
+    await user.type(name, 'Mars');
+    const rows = screen.getByLabelText('Rows');
+    await user.clear(rows);
+    await user.type(rows, '12');
+    await user.click(screen.getByLabelText(/wraps around/i));
+    await user.click(screen.getByLabelText(/cells age/i));
+    await user.click(screen.getByRole('button', { name: /reset/i }));
+    expect(name).toHaveValue('The World');
+    expect(rows).toHaveValue('20');
+    expect(screen.getByLabelText(/wraps around/i)).toBeChecked();
+    expect(screen.getByLabelText(/cells age/i)).toBeChecked();
+    expect(screen.getAllByRole('slider')[0]).not.toHaveAttribute('data-disabled');
+  });
+
+  it('Reset clears the missing-name error', async () => {
+    const { user } = renderModal(true);
+    await user.clear(screen.getByLabelText(/world name/i));
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+    await user.click(screen.getByRole('button', { name: /reset/i }));
+    expect(screen.queryByText(/must have a name/i)).toBeNull();
+  });
+});
