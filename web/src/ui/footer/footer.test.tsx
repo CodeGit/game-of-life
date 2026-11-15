@@ -1,5 +1,5 @@
 import { AppShell } from '@mantine/core';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { CONWAY, RULE_PRESETS, findPreset } from '@/engine/rules';
@@ -148,7 +148,7 @@ describe('Footer: speed', () => {
 describe('Footer: rules', () => {
   it('shows the name of the current rules', () => {
     renderFooter({ rules: findPreset('highlife')!.rules });
-    expect(rulesInput()).toHaveValue('HighLife');
+    expect(rulesInput()).toHaveDisplayValue('HighLife');
   });
 
   it('shows nothing selected for rules that are not a preset', () => {
@@ -156,16 +156,14 @@ describe('Footer: rules', () => {
     expect(rulesInput()).toHaveValue('');
   });
 
-  it('lists every preset', async () => {
-    const { user } = renderFooter();
-    await user.click(rulesInput());
-    expect(await screen.findAllByRole('option')).toHaveLength(RULE_PRESETS.length);
+  it('lists every preset', () => {
+    renderFooter();
+    expect(within(rulesInput()).getAllByRole('option')).toHaveLength(RULE_PRESETS.length);
   });
 
   it('reports the rules of the preset that was chosen', async () => {
     const { onRulesChange, user } = renderFooter();
-    await user.click(rulesInput());
-    await user.click(await screen.findByRole('option', { name: 'HighLife' }));
+    await user.selectOptions(rulesInput(), 'HighLife');
     expect(onRulesChange).toHaveBeenCalledTimes(1);
     expect(onRulesChange).toHaveBeenCalledWith(findPreset('highlife')!.rules);
   });
