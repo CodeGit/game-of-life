@@ -1,4 +1,5 @@
 import { AppShell } from '@mantine/core';
+import type { ComponentProps } from 'react';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -9,14 +10,25 @@ import type { Mode } from '@/game/mode';
 import { renderWithMantine } from '@/test-utils';
 import { Footer } from './footer';
 
-type Overrides = { mode?: Mode; generation?: number | null; rules?: Rules; speed?: number };
+type Zoom = ComponentProps<typeof Footer>['zoom'];
+type Overrides = {
+  mode?: Mode;
+  generation?: number | null;
+  rules?: Rules;
+  speed?: number;
+  zoom?: Partial<Zoom>;
+};
 
 function renderFooter({
   mode = MODE.GAME_READY,
   generation = 0,
   rules = CONWAY,
   speed = 50,
+  zoom = {},
 }: Overrides = {}) {
+  const zoomIn = vi.fn();
+  const zoomOut = vi.fn();
+  const fit = vi.fn();
   const onStep = vi.fn();
   const onPlay = vi.fn();
   const onPause = vi.fn();
@@ -37,6 +49,7 @@ function renderFooter({
         onPause={onPause}
         onReset={onReset}
         onRulesChange={onRulesChange}
+        zoom={{ isFit: true, canZoomIn: true, canZoomOut: true, zoomIn, zoomOut, fit, ...zoom }}
       />
     </AppShell>,
   );
@@ -47,6 +60,9 @@ function renderFooter({
     onReset,
     onSpeedChange,
     onRulesChange,
+    zoomIn,
+    zoomOut,
+    fit,
     user: userEvent.setup(),
   };
 }
@@ -176,5 +192,47 @@ describe('Footer: rules', () => {
   it('is disabled once the game is complete', () => {
     renderFooter({ mode: MODE.GAME_COMPLETE });
     expect(rulesInput()).toBeDisabled();
+  });
+});
+
+describe('Footer: zoom', () => {
+  it('Zoom in, Zoom out and Fit report what was pressed', async () => {
+    const { zoomIn, zoomOut, fit, user } = renderFooter();
+    await user.click(button('Zoom in'));
+    await user.click(button('Zoom out'));
+    await user.click(button('Fit to window'));
+    expect(zoomIn).toHaveBeenCalledTimes(1);
+    expect(zoomOut).toHaveBeenCalledTimes(1);
+    expect(fit).toHaveBeenCalledTimes(1);
+  });
+
+  it('is disabled when there is no game', () => {
+    renderFooter({ generation: null });
+    for (const name of ['Zoom in', 'Zoom out', 'Fit to window']) {
+      expect(button(name)).toBeDisabled();
+    }
+  });
+
+  it('can be used in every mode of a game, even when it is complete', () => {
+    renderFooter({ mode: MODE.GAME_COMPLETE });
+    expect(button('Zoom in')).toBeEnabled();
+    expect(button('Fit to window')).toBeEnabled();
+  });
+
+  it('cannot zoom past the ends', () => {
+    renderFooter({ zoom: { canZoomIn: false, canZoomOut: false } });
+    expect(button('Zoom in')).toBeDisabled();
+    expect(button('Zoom out')).toBeDisabled();
+    expect(button('Fit to window')).toBeEnabled();
+  });
+
+  it('shows whether the board is fitted to the window', () => {
+    renderFooter({ zoom: { isFit: true } });
+    expect(button('Fit to window')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('shows when it is not', () => {
+    renderFooter({ zoom: { isFit: false } });
+    expect(button('Fit to window')).toHaveAttribute('aria-pressed', 'false');
   });
 });

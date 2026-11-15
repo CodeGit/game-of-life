@@ -24,6 +24,15 @@ import { allowedActions } from '@/game/controls';
 import { MAX_SPEED, MIN_SPEED } from '@/game/speed';
 import { findPreset, RULE_PRESETS, ruleString } from '@/engine/rules';
 
+type ZoomControls = {
+  isFit: boolean;
+  canZoomIn: boolean;
+  canZoomOut: boolean;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  fit: () => void;
+};
+
 type FooterProps = {
   columnWidth: number;
   mode: Mode;
@@ -36,6 +45,7 @@ type FooterProps = {
   onPause: () => void;
   onReset: () => void;
   onRulesChange: (rules: Rules) => void;
+  zoom: ZoomControls;
 };
 
 export function Footer({
@@ -50,8 +60,10 @@ export function Footer({
   onPause,
   onReset,
   onRulesChange,
+  zoom,
 }: FooterProps) {
-  const allowed = allowedActions(mode, generation !== null);
+  const hasGame = generation !== null;
+  const allowed = allowedActions(mode, hasGame);
   const rulesData = RULE_PRESETS.map((p) => ({ value: p.id, label: p.name }));
   const currentId = RULE_PRESETS.find((p) => ruleString(p.rules) === ruleString(rules))?.id ?? null;
   return (
@@ -108,13 +120,27 @@ export function Footer({
               disabled={!allowed.changeRules}
             />
             <ActionIconGroup>
-              <ActionIcon aria-label="Zoom out">
+              <ActionIcon
+                aria-label="Zoom out"
+                onClick={zoom.zoomOut}
+                disabled={!hasGame || !zoom.canZoomOut}
+              >
                 <MagnifyingGlassMinusIcon />
               </ActionIcon>
-              <ActionIcon aria-label="Fit to width">
+              <ActionIcon
+                aria-label="Fit to window"
+                aria-pressed={zoom.isFit}
+                variant={zoom.isFit ? 'filled' : 'light'}
+                onClick={zoom.fit}
+                disabled={!hasGame}
+              >
                 <MagnifyingGlassIcon />
               </ActionIcon>
-              <ActionIcon aria-label="Zoom in">
+              <ActionIcon
+                aria-label="Zoom in"
+                onClick={zoom.zoomIn}
+                disabled={!hasGame || !zoom.canZoomIn}
+              >
                 <MagnifyingGlassPlusIcon />
               </ActionIcon>
             </ActionIconGroup>

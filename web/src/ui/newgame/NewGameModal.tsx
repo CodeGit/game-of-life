@@ -11,6 +11,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { DEFAULT_COLS, DEFAULT_ROWS } from '@/engine/defaults';
 import { MAX_LIFESPAN, MAX_WORLD_SIZE, MIN_LIFESPAN, MIN_WORLD_SIZE } from '@/engine/limits';
 import type { WorldOptions } from '@/engine/types';
 
@@ -22,8 +23,8 @@ type NewGameModalProps = {
 
 const DEFAULT_OPTIONS: WorldOptions = {
   id: 'The World',
-  rows: 20,
-  cols: 20,
+  rows: DEFAULT_ROWS,
+  cols: DEFAULT_COLS,
   wrap: true,
   age: true,
   lifespan: 100,
