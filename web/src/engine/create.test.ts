@@ -8,6 +8,11 @@ const options: WorldOptions = { id: 'test', rows: 10, cols: 10, wrap: false, age
 const liveCells = (cells: Uint8Array) => cells.filter((owner) => owner > 0).length;
 
 describe('createWorld', () => {
+  it('world is initialised at generation 0', () => {
+    const world = createWorld(options);
+    expect(world.generation).toBe(0);
+  });
+
   it('makes an empty world of the right size', () => {
     const world = createWorld(options);
     expect(world.rows).toBe(10);

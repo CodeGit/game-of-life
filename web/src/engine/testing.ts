@@ -2,8 +2,8 @@
 //
 // Worlds are described as pictures: '.' is a dead cell, '#' is a cell owned by
 // player 1, and the digits '1'-'9' are cells owned by that player.
+import { CONWAY } from './rules';
 import { createWorld, updateWorld } from './world';
-import { RULE_TYPE } from './types';
 import type { Rules, World } from './types';
 
 export type PictureOptions = { wrap?: boolean; age?: boolean; lifespan?: number; seed?: number };
@@ -69,5 +69,4 @@ export function step(world: World, rules: Rules, generations = 1): void {
   for (let i = 0; i < generations; i++) updateWorld(world, rules);
 }
 
-// Conway's Life: B3/S23 with the 8 surrounding cells.
-export const conway: Rules = { type: RULE_TYPE.SQUARE, range: 1, Birth: [3], Survival: [2, 3] };
+export const conway = CONWAY;

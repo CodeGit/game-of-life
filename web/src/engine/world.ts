@@ -59,6 +59,7 @@ export function createWorld({
     seed,
     wrap,
     lifespan,
+    generation: 0,
     rangeLimit: Math.floor(Math.min(rows, cols) / 2), // Maximum range for neighborhood calculations
   };
   if (density !== undefined) randomiseWorld(world, density, players);
@@ -128,9 +129,9 @@ export function updateWorld(world: World, rules: Rules): void {
       buffer[i] = next;
     }
   }
-
   world.main = buffer;
   world.buffer = main;
+  world.generation++;
 }
 
 // Decides whether the neighbour at offset (r, c) from a cell is counted.
