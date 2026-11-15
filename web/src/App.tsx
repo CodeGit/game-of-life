@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useGameMode } from '@/game/useGameMode';
-import { AppShell, Container, Group, Text } from '@mantine/core';
+import { AppShell, Container } from '@mantine/core';
 import { ReloadPrompt } from '@/ReloadPrompt';
 import { Grid } from '@/ui/grid/Grid';
 import { Header } from '@/ui/header/header';
 import { NewGameModal } from '@/ui/newgame/NewGameModal';
 import './App.css';
+import { Footer } from './ui/footer/footer';
 
 // The header, board and footer share one column, as wide as the board (but never too narrow for the title).
 const MIN_COLUMN_WIDTH = 360;
@@ -15,7 +16,7 @@ function App() {
   const game = useGameMode();
   const columnWidth = Math.max(MIN_COLUMN_WIDTH, game.world ? game.world.cols * cellSize : 0);
   return (
-    <AppShell header={{ height: 88 }} footer={{ height: 40 }} padding="md">
+    <AppShell header={{ height: 88 }} footer={{ height: 130 }} padding="md">
       <Header onAction={game.handleMenuAction} columnWidth={columnWidth} />
       <NewGameModal
         opened={game.isNewGameFormVisible}
@@ -34,13 +35,19 @@ function App() {
           </div>
         </Container>
       </AppShell.Main>
-      <AppShell.Footer>
-        <Container size={columnWidth} px={0} h="100%">
-          <Group h="100%">
-            <Text>{game.message}</Text>
-          </Group>
-        </Container>
-      </AppShell.Footer>
+      <Footer
+        columnWidth={columnWidth}
+        mode={game.mode}
+        generation={game.world?.generation ?? null}
+        rules={game.rules}
+        speed={game.speed}
+        onSpeedChange={game.setSpeed}
+        onStep={game.stepGame}
+        onPlay={game.runGame}
+        onPause={game.pauseGame}
+        onReset={game.resetGame}
+        onRulesChange={game.setRules}
+      />
     </AppShell>
   );
 }

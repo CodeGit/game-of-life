@@ -55,6 +55,7 @@ export function NewGameModal({ opened, onClose, onStart }: NewGameModalProps) {
               label="Rows"
               min={MIN_WORLD_SIZE}
               max={MAX_WORLD_SIZE}
+              allowDecimal={false}
               description="Number of rows in the world"
               placeholder="Input number of rows"
               {...form.getInputProps('rows')}
@@ -63,6 +64,7 @@ export function NewGameModal({ opened, onClose, onStart }: NewGameModalProps) {
               label="Columns"
               min={MIN_WORLD_SIZE}
               max={MAX_WORLD_SIZE}
+              allowDecimal={false}
               description="Number of columns in the world"
               placeholder="Input number of columns"
               {...form.getInputProps('cols')}
@@ -76,16 +78,16 @@ export function NewGameModal({ opened, onClose, onStart }: NewGameModalProps) {
         <Fieldset legend="Cell life">
           <Stack gap="md">
             <Checkbox label="Cells age" {...form.getInputProps('age', { type: 'checkbox' })} />
-            <Input.Wrapper label="Lifespan" description="How many cycles a cell lives">
+            <Input.Wrapper label="Lifespan" description="How many generations a cell lives">
               <Slider
-                label={(v) => `${v} cycles`}
+                label={(v) => `${v} generations`}
                 disabled={!form.values.age}
                 min={MIN_LIFESPAN}
                 max={MAX_LIFESPAN}
                 marks={[
-                  { value: 1, label: '1 cycle' },
-                  { value: 128, label: '128 cycles' },
-                  { value: 255, label: '255 cycles' },
+                  { value: 1, label: '1 generation' },
+                  { value: 128, label: '128 generations' },
+                  { value: 255, label: '255 generations' },
                 ]}
                 {...form.getInputProps('lifespan')}
               />
@@ -94,7 +96,7 @@ export function NewGameModal({ opened, onClose, onStart }: NewGameModalProps) {
         </Fieldset>
         <Fieldset legend="Population">
           <Stack gap="md">
-            <Input.Wrapper label="Population Density" description="Randomly add live cells">
+            <Input.Wrapper label="Population Density" description="Randomly populate the world">
               <Slider
                 label={(v) => `${Math.round(v * 100)}%`}
                 step={0.01}

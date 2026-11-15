@@ -3,6 +3,17 @@ import { RULE_TYPE } from './types';
 import type { Rules } from './types';
 import { ageAt, conway, ownerAt, pictureOf, step, worldFrom } from './testing';
 
+describe('World generations', () => {
+  it('The world increments generation with each step', () => {
+    const empty = ['....', '....', '....', '....'];
+    const world = worldFrom(empty);
+    for (let i = 1; i < 5; i++) {
+      step(world, conway);
+      expect(world.generation).toEqual(i);
+    }
+  });
+});
+
 describe('still lifes and oscillators (Conway rules)', () => {
   it('a block does not change', () => {
     const block = [

@@ -15,6 +15,7 @@ export type World = {
   seed: number;
   wrap: boolean;
   rangeLimit: number;
+  generation: number;
 };
 
 // Everything needed to create a world. Fixed for the life of a game.
