@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { DEFAULT_COLS, DEFAULT_ROWS } from '@/engine/defaults';
 import { renderWithMantine } from '@/test-utils';
 import { NewGameModal } from './NewGameModal';
 
@@ -28,7 +29,13 @@ describe('NewGameModal', () => {
     await user.click(screen.getByRole('button', { name: /submit|start/i }));
     expect(onStart).toHaveBeenCalledTimes(1);
     expect(onStart).toHaveBeenCalledWith(
-      expect.objectContaining({ rows: 20, cols: 20, wrap: true, age: true, players: 1 }),
+      expect.objectContaining({
+        rows: DEFAULT_ROWS,
+        cols: DEFAULT_COLS,
+        wrap: true,
+        age: true,
+        players: 1,
+      }),
     );
     expect(onClose).not.toHaveBeenCalled(); // closing is up to whoever starts the game
   });
@@ -62,8 +69,8 @@ describe('NewGameModal: fields', () => {
   it('shows the default values', () => {
     renderModal(true);
     expect(screen.getByLabelText(/world name/i)).toHaveValue('The World');
-    expect(screen.getByLabelText('Rows')).toHaveValue('20');
-    expect(screen.getByLabelText('Columns')).toHaveValue('20');
+    expect(screen.getByLabelText('Rows')).toHaveValue(String(DEFAULT_ROWS));
+    expect(screen.getByLabelText('Columns')).toHaveValue(String(DEFAULT_COLS));
     expect(screen.getByLabelText(/wraps around/i)).toBeChecked();
     expect(screen.getByLabelText(/cells age/i)).toBeChecked();
   });
@@ -126,7 +133,7 @@ describe('NewGameModal: fields', () => {
     await user.click(screen.getByLabelText(/cells age/i));
     await user.click(screen.getByRole('button', { name: /reset/i }));
     expect(name).toHaveValue('The World');
-    expect(rows).toHaveValue('20');
+    expect(rows).toHaveValue(String(DEFAULT_ROWS));
     expect(screen.getByLabelText(/wraps around/i)).toBeChecked();
     expect(screen.getByLabelText(/cells age/i)).toBeChecked();
     expect(screen.getAllByRole('slider')[0]).not.toHaveAttribute('data-disabled');

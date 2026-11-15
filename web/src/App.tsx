@@ -1,30 +1,38 @@
-import { useState } from 'react';
 import { useGameMode } from '@/game/useGameMode';
 import { AppShell, Container } from '@mantine/core';
 import { ReloadPrompt } from '@/ReloadPrompt';
 import { Grid } from '@/ui/grid/Grid';
+import { useZoom } from '@/ui/grid/useZoom';
 import { Header } from '@/ui/header/header';
+import { FOOTER_HEIGHT, HEADER_HEIGHT, PAGE_PADDING, columnWidth } from '@/ui/layout';
 import { NewGameModal } from '@/ui/newgame/NewGameModal';
 import './App.css';
 import { Footer } from './ui/footer/footer';
 
-// The header, board and footer share one column, as wide as the board (but never too narrow for the title).
-const MIN_COLUMN_WIDTH = 360;
-
 function App() {
-  const [cellSize] = useState(20);
   const game = useGameMode();
-  const columnWidth = Math.max(MIN_COLUMN_WIDTH, game.world ? game.world.cols * cellSize : 0);
+  const zoom = useZoom(game.world);
+  const { cellSize } = zoom;
+  // The header, board and footer share one column, which follows the board's width within limits.
+  const boardWidth = game.world ? game.world.cols * cellSize : 0;
+  const column = columnWidth(boardWidth, zoom.availableWidth);
   return (
-    <AppShell header={{ height: 88 }} footer={{ height: 130 }} padding="md">
-      <Header onAction={game.handleMenuAction} columnWidth={columnWidth} />
+    <AppShell
+      header={{ height: HEADER_HEIGHT }}
+      footer={{ height: FOOTER_HEIGHT }}
+      padding={PAGE_PADDING}
+    >
+      <Header onAction={game.handleMenuAction} columnWidth={column} />
       <NewGameModal
         opened={game.isNewGameFormVisible}
         onClose={game.hideNewGameForm}
-        onStart={game.startGame}
+        onStart={(options) => {
+          game.startGame(options);
+          zoom.fit(); // a new board is fitted to the window, whatever the last one was zoomed to
+        }}
       />
       <AppShell.Main>
-        <Container size={columnWidth} px={0}>
+        <Container size={column} px={0}>
           <ReloadPrompt />
           <div style={{ overflow: 'auto' }}>
             {game.world ? (
@@ -36,7 +44,7 @@ function App() {
         </Container>
       </AppShell.Main>
       <Footer
-        columnWidth={columnWidth}
+        columnWidth={column}
         mode={game.mode}
         generation={game.world?.generation ?? null}
         rules={game.rules}
@@ -47,6 +55,7 @@ function App() {
         onPause={game.pauseGame}
         onReset={game.resetGame}
         onRulesChange={game.setRules}
+        zoom={zoom}
       />
     </AppShell>
   );

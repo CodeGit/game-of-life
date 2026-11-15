@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithMantine } from '@/test-utils';
+import { MAX_COLUMN_WIDTH } from '@/ui/layout';
 import { MODE_MESSAGES, MODE } from '@/game/mode';
 import App from './App';
 
@@ -131,6 +132,98 @@ describe('App', () => {
       await user.click(screen.getByRole('button', { name: 'Reset' }));
       expect(screen.getByText('Generation 0')).toBeInTheDocument();
       expect(screen.getByText(MODE_MESSAGES[MODE.GAME_READY])).toBeInTheDocument();
+    });
+  });
+
+  describe('zoom', () => {
+    const canvasWidth = (container: HTMLElement) =>
+      Number(container.querySelector('canvas')?.getAttribute('width'));
+    // The width of the column the header, board and footer share, which Mantine sets in rem.
+    const columnWidth = () => {
+      const footer = document.querySelector('footer [class*="Container"]');
+      const rem = /calc\(([\d.]+)rem/.exec(footer?.getAttribute('style') ?? '')?.[1];
+      return Number(rem) * 16;
+    };
+    const press = (user: ReturnType<typeof userEvent.setup>, name: string) =>
+      user.click(screen.getByRole('button', { name }));
+    const started = async () => {
+      const user = userEvent.setup();
+      const { container } = renderWithMantine(<App />);
+      await startGame(user);
+      await waitFor(() => expect(container.querySelector('canvas')).not.toBeNull());
+      return { user, container };
+    };
+    const original = { width: window.innerWidth, height: window.innerHeight };
+    afterEach(() => {
+      window.innerWidth = original.width;
+      window.innerHeight = original.height;
+    });
+
+    it('is off until a game starts', () => {
+      renderWithMantine(<App />);
+      expect(screen.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
+    });
+
+    it('Zoom in makes the board bigger and Zoom out makes it smaller', async () => {
+      const { user, container } = await started();
+      const fitted = canvasWidth(container);
+      await press(user, 'Zoom in');
+      expect(canvasWidth(container)).toBeGreaterThan(fitted);
+      await press(user, 'Zoom out');
+      await press(user, 'Zoom out');
+      expect(canvasWidth(container)).toBeLessThan(fitted);
+    });
+
+    it('keeps the board square', async () => {
+      const { user, container } = await started();
+      await press(user, 'Zoom in');
+      const canvas = container.querySelector('canvas');
+      expect(canvas?.getAttribute('height')).toBe(canvas?.getAttribute('width'));
+    });
+
+    it('Fit goes back to the fitted size', async () => {
+      const { user, container } = await started();
+      const fitted = canvasWidth(container);
+      await press(user, 'Zoom in');
+      await press(user, 'Fit to window');
+      expect(canvasWidth(container)).toBe(fitted);
+    });
+
+    it('a new game is fitted again, whatever the last one was zoomed to', async () => {
+      const { user, container } = await started();
+      const fitted = canvasWidth(container);
+      await press(user, 'Zoom in');
+      await startGame(user);
+      await waitFor(() => expect(canvasWidth(container)).toBe(fitted));
+    });
+
+    it('does not make the header and footer wider than the window when the board is', async () => {
+      window.innerWidth = 600; // 568 pixels once the page padding is taken off
+      window.innerHeight = 700;
+      const { user, container } = await started();
+      for (let i = 0; i < 3; i++) await press(user, 'Zoom in');
+      expect(canvasWidth(container)).toBeGreaterThan(568); // the board is wider than the window
+      expect(columnWidth()).toBe(568); // but the column is not
+    });
+
+    it('does not make the header and footer wider than the maximum on a big screen', async () => {
+      window.innerWidth = 1600;
+      window.innerHeight = 1000;
+      const { user, container } = await started();
+      for (let i = 0; i < 8; i++) await press(user, 'Zoom in');
+      expect(canvasWidth(container)).toBeGreaterThan(MAX_COLUMN_WIDTH); // a very big board
+      expect(columnWidth()).toBe(MAX_COLUMN_WIDTH); // in a column of limited width
+    });
+
+    it('keeps the header and footer the same width however much the board is zoomed', async () => {
+      window.innerWidth = 1600;
+      window.innerHeight = 1000;
+      const { user } = await started();
+      await press(user, 'Zoom in');
+      await press(user, 'Zoom in');
+      const before = columnWidth();
+      for (let i = 0; i < 6; i++) await press(user, 'Zoom in'); // already past the maximum
+      expect(columnWidth()).toBe(before);
     });
   });
 });
