@@ -20,8 +20,8 @@ import {
 } from '@phosphor-icons/react';
 import { MODE_MESSAGES, type Mode } from '@/game/mode';
 import type { Rules } from '@/engine/types';
-import { useState } from 'react';
 import { allowedActions } from '@/game/controls';
+import { MAX_SPEED, MIN_SPEED } from '@/game/speed';
 import { findPreset, RULE_PRESETS, ruleString } from '@/engine/rules';
 
 type FooterProps = {
@@ -29,7 +29,12 @@ type FooterProps = {
   mode: Mode;
   generation: number | null;
   rules: Rules;
+  speed: number;
+  onSpeedChange: (speed: number) => void;
   onStep: () => void;
+  onPlay: () => void;
+  onPause: () => void;
+  onReset: () => void;
   onRulesChange: (rules: Rules) => void;
 };
 
@@ -38,10 +43,14 @@ export function Footer({
   mode,
   generation,
   rules,
+  speed,
+  onSpeedChange,
   onStep,
+  onPlay,
+  onPause,
+  onReset,
   onRulesChange,
 }: FooterProps) {
-  const [speed, setSpeed] = useState(100);
   const allowed = allowedActions(mode, generation !== null);
   const rulesData = RULE_PRESETS.map((p) => ({ value: p.id, label: p.name }));
   const currentId = RULE_PRESETS.find((p) => ruleString(p.rules) === ruleString(rules))?.id ?? null;
@@ -51,16 +60,16 @@ export function Footer({
         <Stack h="100%" justify="center" gap="xs">
           <Group wrap="nowrap">
             <ActionIconGroup>
-              <ActionIcon aria-label="Reset" disabled={!allowed.reset}>
+              <ActionIcon aria-label="Reset" onClick={onReset} disabled={!allowed.reset}>
                 <ArrowCounterClockwiseIcon />
               </ActionIcon>
-              <ActionIcon aria-label="Pause" disabled={!allowed.pause}>
+              <ActionIcon aria-label="Pause" onClick={onPause} disabled={!allowed.pause}>
                 <PauseIcon />
               </ActionIcon>
               <ActionIcon aria-label="Step" onClick={onStep} disabled={!allowed.step}>
                 <SkipForwardIcon />
               </ActionIcon>
-              <ActionIcon aria-label="Play" disabled={!allowed.play}>
+              <ActionIcon aria-label="Play" onClick={onPlay} disabled={!allowed.play}>
                 <PlayIcon />
               </ActionIcon>
             </ActionIconGroup>
@@ -71,10 +80,10 @@ export function Footer({
                 thumbLabel="World speed"
                 label={(v) => `${v}%`}
                 step={1}
-                min={1}
-                max={100}
+                min={MIN_SPEED}
+                max={MAX_SPEED}
                 value={speed}
-                onChange={setSpeed}
+                onChange={onSpeedChange}
               />
               <Text size="sm" w={35} ta="right">
                 {speed}%

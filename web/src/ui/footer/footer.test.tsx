@@ -9,10 +9,19 @@ import type { Mode } from '@/game/mode';
 import { renderWithMantine } from '@/test-utils';
 import { Footer } from './footer';
 
-type Overrides = { mode?: Mode; generation?: number | null; rules?: Rules };
+type Overrides = { mode?: Mode; generation?: number | null; rules?: Rules; speed?: number };
 
-function renderFooter({ mode = MODE.GAME_READY, generation = 0, rules = CONWAY }: Overrides = {}) {
+function renderFooter({
+  mode = MODE.GAME_READY,
+  generation = 0,
+  rules = CONWAY,
+  speed = 50,
+}: Overrides = {}) {
   const onStep = vi.fn();
+  const onPlay = vi.fn();
+  const onPause = vi.fn();
+  const onReset = vi.fn();
+  const onSpeedChange = vi.fn();
   const onRulesChange = vi.fn();
   renderWithMantine(
     <AppShell footer={{ height: 130 }}>
@@ -21,12 +30,25 @@ function renderFooter({ mode = MODE.GAME_READY, generation = 0, rules = CONWAY }
         mode={mode}
         generation={generation}
         rules={rules}
+        speed={speed}
+        onSpeedChange={onSpeedChange}
         onStep={onStep}
+        onPlay={onPlay}
+        onPause={onPause}
+        onReset={onReset}
         onRulesChange={onRulesChange}
       />
     </AppShell>,
   );
-  return { onStep, onRulesChange, user: userEvent.setup() };
+  return {
+    onStep,
+    onPlay,
+    onPause,
+    onReset,
+    onSpeedChange,
+    onRulesChange,
+    user: userEvent.setup(),
+  };
 }
 
 const button = (name: string) => screen.getByRole('button', { name });
@@ -89,9 +111,54 @@ describe('Footer: play bar', () => {
     expect(onStep).not.toHaveBeenCalled();
   });
 
-  it('has a speed slider', () => {
-    renderFooter();
-    expect(screen.getByRole('slider', { name: 'World speed' })).toBeInTheDocument();
+  it('Play reports play', async () => {
+    const { onPlay, user } = renderFooter({ mode: MODE.GAME_READY });
+    await user.click(button('Play'));
+    expect(onPlay).toHaveBeenCalledTimes(1);
+  });
+
+  it('Pause reports pause', async () => {
+    const { onPause, user } = renderFooter({ mode: MODE.GAME_RUNNING });
+    await user.click(button('Pause'));
+    expect(onPause).toHaveBeenCalledTimes(1);
+  });
+
+  it('Reset reports reset', async () => {
+    const { onReset, user } = renderFooter({ mode: MODE.GAME_PAUSED });
+    await user.click(button('Reset'));
+    expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not report Play, Pause or Reset from buttons that are disabled', async () => {
+    const { onPlay, onPause, onReset, user } = renderFooter({ mode: MODE.GAME_COMPLETE });
+    await user.click(button('Play'));
+    await user.click(button('Pause'));
+    await user.click(button('Reset'));
+    expect(onPlay).not.toHaveBeenCalled();
+    expect(onPause).not.toHaveBeenCalled();
+    expect(onReset).not.toHaveBeenCalled();
+  });
+});
+
+describe('Footer: speed', () => {
+  const slider = () => screen.getByRole('slider', { name: 'World speed' });
+
+  it('has a speed slider showing the speed it is given', () => {
+    renderFooter({ speed: 70 });
+    expect(slider()).toHaveAttribute('aria-valuenow', '70');
+    expect(screen.getByText('70%')).toBeInTheDocument();
+  });
+
+  it('reports a new speed from the keyboard', async () => {
+    const { onSpeedChange, user } = renderFooter({ speed: 50 });
+    slider().focus();
+    await user.keyboard('{ArrowRight}');
+    expect(onSpeedChange).toHaveBeenCalledWith(51);
+  });
+
+  it('can be used in every state, even with no game', () => {
+    renderFooter({ generation: null, mode: MODE.GAME_COMPLETE });
+    expect(slider()).toBeInTheDocument();
   });
 });
 

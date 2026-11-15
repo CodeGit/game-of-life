@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { act } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithMantine } from '@/test-utils';
 import { MODE_MESSAGES, MODE } from '@/game/mode';
 import App from './App';
@@ -94,5 +95,42 @@ describe('App', () => {
     await user.click(screen.getByText('Game'));
     await user.click(await screen.findByText('End Game'));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Step' })).toBeDisabled());
+  });
+
+  describe('playing', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('Play runs the game and Pause stops it', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      renderWithMantine(<App />);
+      await startGame(user);
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Play' })).toBeEnabled());
+
+      await user.click(screen.getByRole('button', { name: 'Play' }));
+      expect(screen.getByText(MODE_MESSAGES[MODE.GAME_RUNNING])).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Step' })).toBeDisabled();
+      await act(async () => void vi.advanceTimersByTime(3000));
+      expect(screen.queryByText('Generation 0')).toBeNull();
+
+      await user.click(screen.getByRole('button', { name: 'Pause' }));
+      expect(screen.getByText(MODE_MESSAGES[MODE.GAME_PAUSED])).toBeInTheDocument();
+      const paused = screen.getByText(/^Generation \d+$/).textContent;
+      await act(async () => void vi.advanceTimersByTime(3000));
+      expect(screen.getByText(/^Generation \d+$/).textContent).toBe(paused);
+    });
+
+    it('Reset goes back to generation 0 and the ready message', async () => {
+      const user = userEvent.setup();
+      renderWithMantine(<App />);
+      await startGame(user);
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Step' })).toBeEnabled());
+      await user.click(screen.getByRole('button', { name: 'Step' }));
+      await user.click(screen.getByRole('button', { name: 'Step' }));
+      expect(screen.getByText('Generation 2')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Reset' }));
+      expect(screen.getByText('Generation 0')).toBeInTheDocument();
+      expect(screen.getByText(MODE_MESSAGES[MODE.GAME_READY])).toBeInTheDocument();
+    });
   });
 });

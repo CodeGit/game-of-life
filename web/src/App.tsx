@@ -40,7 +40,12 @@ function App() {
         mode={game.mode}
         generation={game.world?.generation ?? null}
         rules={game.rules}
+        speed={game.speed}
+        onSpeedChange={game.setSpeed}
         onStep={game.stepGame}
+        onPlay={game.runGame}
+        onPause={game.pauseGame}
+        onReset={game.resetGame}
         onRulesChange={game.setRules}
       />
     </AppShell>
