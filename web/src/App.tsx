@@ -1,7 +1,6 @@
 import { useGameMode } from '@/game/useGameMode';
 import { AppShell, Container } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { ReloadPrompt } from '@/ReloadPrompt';
 import { Grid } from '@/ui/grid/Grid';
 import { useZoom } from '@/ui/grid/useZoom';
 import { AboutModal } from '@/ui/about/AboutModal';
@@ -37,7 +36,6 @@ function App() {
       />
       <AppShell.Main>
         <Container size={column} px={0}>
-          <ReloadPrompt />
           <div style={{ overflow: 'auto' }}>
             {game.world ? (
               <div style={{ margin: '0 auto', width: 'fit-content' }}>
