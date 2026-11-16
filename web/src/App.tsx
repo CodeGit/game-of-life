@@ -1,8 +1,10 @@
 import { useGameMode } from '@/game/useGameMode';
 import { AppShell, Container } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { ReloadPrompt } from '@/ReloadPrompt';
 import { Grid } from '@/ui/grid/Grid';
 import { useZoom } from '@/ui/grid/useZoom';
+import { AboutModal } from '@/ui/about/AboutModal';
 import { Header } from '@/ui/header/header';
 import { FOOTER_HEIGHT, HEADER_HEIGHT, PAGE_PADDING, columnWidth } from '@/ui/layout';
 import { NewGameModal } from '@/ui/newgame/NewGameModal';
@@ -11,6 +13,7 @@ import { Footer } from './ui/footer/footer';
 
 function App() {
   const game = useGameMode();
+  const [aboutOpened, about] = useDisclosure(false);
   const zoom = useZoom(game.world);
   const { cellSize } = zoom;
   // The header, board and footer share one column, which follows the board's width within limits.
@@ -22,7 +25,8 @@ function App() {
       footer={{ height: FOOTER_HEIGHT }}
       padding={PAGE_PADDING}
     >
-      <Header onAction={game.handleMenuAction} columnWidth={column} />
+      <Header onAction={game.handleMenuAction} onAbout={about.open} columnWidth={column} />
+      <AboutModal opened={aboutOpened} onClose={about.close} />
       <NewGameModal
         opened={game.isNewGameFormVisible}
         onClose={game.hideNewGameForm}

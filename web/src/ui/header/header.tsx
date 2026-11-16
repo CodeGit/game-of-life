@@ -1,9 +1,13 @@
 import { AppShell, Container, Menubar, Stack, Text, Menu, Title } from '@mantine/core';
 import { MENU_ACTIONS, type MenuAction } from './menuActions';
 
-type HeaderProps = { onAction: (action: MenuAction) => void; columnWidth: number };
+type HeaderProps = {
+  onAction: (action: MenuAction) => void;
+  onAbout: () => void;
+  columnWidth: number;
+};
 
-export function Header({ onAction, columnWidth }: HeaderProps) {
+export function Header({ onAction, onAbout, columnWidth }: HeaderProps) {
   return (
     <AppShell.Header>
       <Container size={columnWidth} px={0} h="100%">
@@ -28,6 +32,14 @@ export function Header({ onAction, columnWidth }: HeaderProps) {
               <Menubar.Dropdown>
                 <Menu.Item onClick={() => onAction(MENU_ACTIONS.SAVE_GAME)}>Save</Menu.Item>
                 <Menu.Item onClick={() => onAction(MENU_ACTIONS.LOAD_GAME)}>Load</Menu.Item>
+              </Menubar.Dropdown>
+            </Menubar.Menu>
+            <Menubar.Menu>
+              <Menubar.Target>
+                <Text>Help</Text>
+              </Menubar.Target>
+              <Menubar.Dropdown>
+                <Menu.Item onClick={onAbout}>About</Menu.Item>
               </Menubar.Dropdown>
             </Menubar.Menu>
           </Menubar>

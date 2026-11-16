@@ -42,7 +42,12 @@ export function NewGameModal({ opened, onClose, onStart }: NewGameModalProps) {
   });
 
   return (
-    <Modal opened={opened} onClose={onClose} title="New Game">
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title="New Game"
+      closeButtonProps={{ 'aria-label': 'Close' }}
+    >
       <form onSubmit={form.onSubmit((values) => onStart(values))}>
         <TextInput
           label="World Name"

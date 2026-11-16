@@ -57,6 +57,13 @@ describe('NewGameModal', () => {
     expect(onStart).not.toHaveBeenCalled();
   });
 
+  it('has a labelled Close button that closes without starting a game', async () => {
+    const { onStart, onClose, user } = renderModal(true);
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
   it('has a Reset button that does not start or close anything', async () => {
     const { onStart, onClose, user } = renderModal(true);
     await user.click(screen.getByRole('button', { name: /reset/i }));

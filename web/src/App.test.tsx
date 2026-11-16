@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_COLS } from '@/engine/defaults';
 import { renderWithMantine } from '@/test-utils';
 import { MAX_COLUMN_WIDTH } from '@/ui/layout';
 import { MODE_MESSAGES, MODE } from '@/game/mode';
@@ -34,6 +35,16 @@ describe('App', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
+  it('Help > About opens the About box, and closing it leaves no dialog', async () => {
+    const user = userEvent.setup();
+    renderWithMantine(<App />);
+    await user.click(screen.getByText('Help'));
+    await user.click(await screen.findByText('About'));
+    expect(await screen.findByRole('dialog', { name: 'About' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /close/i }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
   it('Cancel closes the form without starting a game', async () => {
     const user = userEvent.setup();
     const { container } = renderWithMantine(<App />);
@@ -51,10 +62,10 @@ describe('App', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     const canvas = container.querySelector('canvas');
     expect(canvas).not.toBeNull();
-    // The default world is 20 x 20 cells, so the canvas is square and a whole number of cells wide.
+    // The default world is square, so the canvas is square and a whole number of cells wide.
     const width = Number(canvas?.getAttribute('width'));
     expect(width).toBeGreaterThan(0);
-    expect(width % 20).toBe(0);
+    expect(width % DEFAULT_COLS).toBe(0);
     expect(canvas).toHaveAttribute('height', String(width));
   });
 

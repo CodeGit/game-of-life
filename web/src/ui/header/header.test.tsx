@@ -8,12 +8,13 @@ import { MENU_ACTIONS } from './menuActions';
 
 function renderHeader() {
   const onAction = vi.fn();
+  const onAbout = vi.fn();
   renderWithMantine(
     <AppShell header={{ height: 88 }}>
-      <Header onAction={onAction} columnWidth={500} />
+      <Header onAction={onAction} onAbout={onAbout} columnWidth={500} />
     </AppShell>,
   );
-  return { onAction, user: userEvent.setup() };
+  return { onAction, onAbout, user: userEvent.setup() };
 }
 
 describe('Header', () => {
@@ -22,10 +23,11 @@ describe('Header', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/game of life/i);
   });
 
-  it('shows the Game and File menus', () => {
+  it('shows the Game, File and Help menus', () => {
     renderHeader();
     expect(screen.getByText('Game')).toBeInTheDocument();
     expect(screen.getByText('File')).toBeInTheDocument();
+    expect(screen.getByText('Help')).toBeInTheDocument();
   });
 
   it('does not report an action until something is chosen', () => {
@@ -44,5 +46,13 @@ describe('Header', () => {
     await user.click(await screen.findByText(item));
     expect(onAction).toHaveBeenCalledTimes(1);
     expect(onAction).toHaveBeenCalledWith(action);
+  });
+
+  it('Help > About opens the About box, and is not a game action', async () => {
+    const { onAction, onAbout, user } = renderHeader();
+    await user.click(screen.getByText('Help'));
+    await user.click(await screen.findByText('About'));
+    expect(onAbout).toHaveBeenCalledTimes(1);
+    expect(onAction).not.toHaveBeenCalled();
   });
 });
