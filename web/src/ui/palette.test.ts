@@ -6,17 +6,17 @@ const palette = new Palette();
 describe('Palette', () => {
   it('has 8 colours with 8 shades each, all different', () => {
     const all = new Set<string>();
-    for (let owner = 1; owner <= Palette.playerCount; owner++) {
+    for (let owner = 1; owner <= Palette.colourCount; owner++) {
       for (let shade = 0; shade < Palette.shadeCount; shade++) {
         all.add(palette.shade(owner, shade));
       }
     }
-    expect(Palette.playerCount).toBe(8);
+    expect(Palette.colourCount).toBe(8);
     expect(Palette.shadeCount).toBe(8);
     expect(all.size).toBe(64);
   });
 
-  it('names the players in order', () => {
+  it('names the colours in order', () => {
     const names = Array.from({ length: 8 }, (_, i) => palette.name(i + 1));
     expect(names).toEqual(['red', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink']);
   });
@@ -36,7 +36,7 @@ describe('Palette', () => {
     }
   });
 
-  it('reuses the colours for players beyond the eighth', () => {
+  it('reuses the palette for colours beyond the eighth', () => {
     expect(palette.shade(9, 3)).toBe(palette.shade(1, 3));
     expect(palette.name(10)).toBe('orange');
   });

@@ -124,7 +124,7 @@ const PLAYER_COLOURS: readonly PlayerColour[] = [
 ];
 
 export class Palette {
-  static readonly playerCount = PLAYER_COLOURS.length;
+  static readonly colourCount = PLAYER_COLOURS.length;
   static readonly shadeCount = PLAYER_COLOURS[0]?.shades.length ?? 0;
 
   // CSS colour strings, indexed [player][shade].
@@ -141,7 +141,7 @@ export class Palette {
       throw new RangeError(`Owner must be a player id of 1 or more, got ${owner}`);
     }
     // Players beyond the eighth reuse the colours from the start.
-    return (owner - 1) % Palette.playerCount;
+    return (owner - 1) % Palette.colourCount;
   }
 
   // The colour name for a player, e.g. 'red'.

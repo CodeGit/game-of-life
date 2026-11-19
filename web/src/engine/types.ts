@@ -28,7 +28,7 @@ export type WorldOptions = {
   lifespan?: number; // defaults to 255
   seed?: number; // defaults to the current time
   density?: number; // 0 to 1: chance each cell starts alive; omit for an empty world
-  players?: number; // how many players share the random cells (default 1)
+  colours?: number; // how many colours share the random cells (default 1)
 };
 
 const CIRCLE = 'CIRCLE';

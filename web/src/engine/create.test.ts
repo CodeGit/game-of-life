@@ -53,13 +53,13 @@ describe('density when creating a world', () => {
     expect(live).toBeLessThan(80);
   });
 
-  it('all cells belong to player 1 by default', () => {
+  it('all cells are colour 1 by default', () => {
     const world = createWorld({ ...options, density: 1 });
     expect(new Set(world.main)).toEqual(new Set([1]));
   });
 
-  it('shares the cells between players, and no one else', () => {
-    const world = createWorld({ ...options, density: 1, players: 3 });
+  it('shares the cells between colours, and no one else', () => {
+    const world = createWorld({ ...options, density: 1, colours: 3 });
     expect(new Set(world.main)).toEqual(new Set([1, 2, 3]));
   });
 
@@ -71,8 +71,8 @@ describe('density when creating a world', () => {
 
 describe('seeds', () => {
   it('the same seed gives the same board', () => {
-    const a = createWorld({ ...options, density: 0.4, players: 2, seed: 7 });
-    const b = createWorld({ ...options, density: 0.4, players: 2, seed: 7 });
+    const a = createWorld({ ...options, density: 0.4, colours: 2, seed: 7 });
+    const b = createWorld({ ...options, density: 0.4, colours: 2, seed: 7 });
     expect(pictureOf(a)).toEqual(pictureOf(b));
   });
 
