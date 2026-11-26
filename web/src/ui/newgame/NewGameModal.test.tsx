@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_COLS, DEFAULT_ROWS } from '@/engine/defaults';
@@ -34,7 +34,7 @@ describe('NewGameModal', () => {
         cols: DEFAULT_COLS,
         wrap: true,
         age: true,
-        players: 1,
+        colours: 1,
       }),
     );
     expect(onClose).not.toHaveBeenCalled(); // closing is up to whoever starts the game
@@ -62,6 +62,23 @@ describe('NewGameModal', () => {
     await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('offers one to eight colours, starting with one', () => {
+    renderModal(true);
+    const select = screen.getByRole('combobox', { name: /world colours/i });
+    expect(select).toHaveValue('1');
+    const choices = within(select)
+      .getAllByRole('option')
+      .map((option) => option.textContent);
+    expect(choices).toEqual(['1', '2', '3', '4', '5', '6', '7', '8']);
+  });
+
+  it('passes the chosen number of colours to onStart, as a number', async () => {
+    const { onStart, user } = renderModal(true);
+    await user.selectOptions(screen.getByRole('combobox', { name: /world colours/i }), '3');
+    await user.click(screen.getByRole('button', { name: /submit|start/i }));
+    expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ colours: 3 }));
   });
 
   it('has a Reset button that does not start or close anything', async () => {
@@ -138,8 +155,10 @@ describe('NewGameModal: fields', () => {
     await user.type(rows, '12');
     await user.click(screen.getByLabelText(/wraps around/i));
     await user.click(screen.getByLabelText(/cells age/i));
+    await user.selectOptions(screen.getByRole('combobox', { name: /world colours/i }), '4');
     await user.click(screen.getByRole('button', { name: /reset/i }));
     expect(name).toHaveValue('The World');
+    expect(screen.getByRole('combobox', { name: /world colours/i })).toHaveValue('1');
     expect(rows).toHaveValue(String(DEFAULT_ROWS));
     expect(screen.getByLabelText(/wraps around/i)).toBeChecked();
     expect(screen.getByLabelText(/cells age/i)).toBeChecked();

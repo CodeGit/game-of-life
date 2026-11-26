@@ -3,10 +3,10 @@ import { RULE_TYPE } from './types';
 import type { AgeGrid, Grid, Rules, World, WorldOptions } from './types';
 
 function getWinners(neighbours: NeighbourCount): number[] {
-  const maxCount = Math.max(...Object.values(neighbours.perPlayerCount));
-  const winners = Object.entries(neighbours.perPlayerCount)
+  const maxCount = Math.max(...Object.values(neighbours.perColourCount));
+  const winners = Object.entries(neighbours.perColourCount)
     .filter(([, count]) => count === maxCount)
-    .map(([playerId]) => Number(playerId));
+    .map(([colourId]) => Number(colourId));
   return winners;
 }
 
@@ -20,15 +20,15 @@ function createAgeGrid(rows: number, cols: number): AgeGrid {
   return grid;
 }
 
-export function randomiseWorld(world: World, density: number, players = 1): void {
-  // adds random live cells to the world based on the given density and number of players.
+export function randomiseWorld(world: World, density: number, colours = 1): void {
+  // adds random live cells to the world based on the given density and number of colours.
   const { rows, cols, main } = world;
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const i = row * cols + col;
       if (main[i] !== 0) continue; // Does not overwrite existing living cells
       if (world.rng() < density) {
-        main[i] = Math.floor(world.rng() * players) + 1;
+        main[i] = Math.floor(world.rng() * colours) + 1;
       }
     }
   }
@@ -43,7 +43,7 @@ export function createWorld({
   lifespan = 255,
   seed = Date.now(),
   density,
-  players = 1,
+  colours = 1,
 }: WorldOptions): World {
   const main = createGrid(rows, cols);
   const buffer = createGrid(rows, cols);
@@ -62,7 +62,7 @@ export function createWorld({
     generation: 0,
     rangeLimit: Math.floor(Math.min(rows, cols) / 2), // Maximum range for neighborhood calculations
   };
-  if (density !== undefined) randomiseWorld(world, density, players);
+  if (density !== undefined) randomiseWorld(world, density, colours);
   return world;
 }
 
@@ -138,8 +138,8 @@ export function updateWorld(world: World, rules: Rules): void {
 type NeighbourTest = (r: number, c: number) => boolean;
 type NeighbourCount = {
   total: number;
-  perPlayerCount: {
-    [playerId: number]: number;
+  perColourCount: {
+    [colourId: number]: number;
   };
 };
 
@@ -161,7 +161,7 @@ export function countNeighbors(
   range: number,
   isNeighbourValid: NeighbourTest,
 ): NeighbourCount {
-  const count: NeighbourCount = { total: 0, perPlayerCount: {} };
+  const count: NeighbourCount = { total: 0, perColourCount: {} };
   for (let r = -range; r <= range; r++) {
     for (let c = -range; c <= range; c++) {
       if (r === 0 && c === 0) continue;
@@ -177,7 +177,7 @@ export function countNeighbors(
       const cell = world.main[nr * world.cols + nc];
       count.total += cell && cell > 0 ? 1 : 0;
       if (cell && cell > 0) {
-        count.perPlayerCount[cell] = (count.perPlayerCount[cell] || 0) + 1;
+        count.perColourCount[cell] = (count.perColourCount[cell] || 0) + 1;
       }
     }
   }

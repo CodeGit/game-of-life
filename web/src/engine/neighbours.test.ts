@@ -110,7 +110,7 @@ describe('per-player counts', () => {
     ]);
     const result = countNeighbors(world, 1, 1, 1, squareTest);
     expect(result.total).toBe(3);
-    expect(result.perPlayerCount).toEqual({ 1: 2, 3: 1 });
+    expect(result.perColourCount).toEqual({ 1: 2, 3: 1 });
   });
 
   it('only tallies neighbours inside the shape', () => {
@@ -119,7 +119,7 @@ describe('per-player counts', () => {
       '...',
       '...',
     ]);
-    expect(countNeighbors(world, 1, 1, 1, squareTest).perPlayerCount).toEqual({ 1: 1, 2: 1 });
-    expect(countNeighbors(world, 1, 1, 1, diamondTest(1)).perPlayerCount).toEqual({ 1: 1 });
+    expect(countNeighbors(world, 1, 1, 1, squareTest).perColourCount).toEqual({ 1: 1, 2: 1 });
+    expect(countNeighbors(world, 1, 1, 1, diamondTest(1)).perColourCount).toEqual({ 1: 1 });
   });
 });

@@ -5,6 +5,7 @@ import {
   Group,
   Input,
   Modal,
+  NativeSelect,
   NumberInput,
   Slider,
   Stack,
@@ -14,6 +15,7 @@ import { useForm } from '@mantine/form';
 import { DEFAULT_COLS, DEFAULT_ROWS } from '@/engine/defaults';
 import { MAX_LIFESPAN, MAX_WORLD_SIZE, MIN_LIFESPAN, MIN_WORLD_SIZE } from '@/engine/limits';
 import type { WorldOptions } from '@/engine/types';
+import { Palette } from '@/ui/palette';
 
 type NewGameModalProps = {
   opened: boolean;
@@ -29,8 +31,12 @@ const DEFAULT_OPTIONS: WorldOptions = {
   age: true,
   lifespan: 100,
   density: 0.3,
-  players: 1,
+  colours: 1,
 };
+
+// 1 to 8, one choice for each colour in the palette. A select (not a typed number) so the value
+// can only be one the palette can show.
+const COLOUR_CHOICES = Array.from({ length: Palette.colourCount }, (_, i) => String(i + 1));
 
 export function NewGameModal({ opened, onClose, onStart }: NewGameModalProps) {
   const form = useForm<WorldOptions>({
@@ -116,13 +122,12 @@ export function NewGameModal({ opened, onClose, onStart }: NewGameModalProps) {
                 {...form.getInputProps('density')}
               />
             </Input.Wrapper>
-            <NumberInput
-              label="Number of Players"
-              min={1}
-              disabled={true}
-              description="Number of players in the world"
-              placeholder="Input number of players"
-              {...form.getInputProps('players')}
+            <NativeSelect
+              label="World colours"
+              description="How many colours share the random cells"
+              data={COLOUR_CHOICES}
+              value={String(form.values.colours)}
+              onChange={(event) => form.setFieldValue('colours', Number(event.currentTarget.value))}
             />
           </Stack>
         </Fieldset>

@@ -53,7 +53,7 @@ The simulation lives in `src/engine/` as plain TypeScript with no React, so it c
 - A world is two flat `Uint8Array`s (`main` and `buffer`, indexed `row * cols + col`) plus its size, a `wrap` flag and a `generation` count. A cell is `0` (dead) or the id of the player who owns it (1 to 255), so colours come from the owner.
 - `updateWorld` reads `main`, writes every cell of `buffer`, swaps the two and adds one to `generation`. No cells are copied.
 - An optional age layer (`ageGrid`) is kept separately from ownership. Survivors age by one each generation, and a cell dies when its age reaches `lifespan` (at most 255). Newborn and dead cells reset to 0. Colour is worked out when drawing, not stored.
-- `createWorld(options)` can fill the world at random (`density`, `players`). The random fill uses the seeded RNG and only touches dead cells, so a seed reproduces a game exactly.
+- `createWorld(options)` can fill the world at random (`density`, `colours`). The random fill uses the seeded RNG and only touches dead cells, so a seed reproduces a game exactly.
 
 **Rules**
 
@@ -65,7 +65,7 @@ The simulation lives in `src/engine/` as plain TypeScript with no React, so it c
 
 **Tests**
 
-Tests describe worlds as pictures (`.` dead, `#` player 1, digits for other players) using the helpers in `testing.ts`.
+Tests describe worlds as pictures (`.` dead, `#` colour 1, digits for other colours) using the helpers in `testing.ts`.
 
 - `create.test.ts`: `createWorld`, density, seeds and `randomiseWorld`.
 - `update.test.ts`: still lifes, a blinker, a glider on a wrapped grid, edges, ownership, tie-breaks, rule shapes, age and the generation count.
@@ -74,7 +74,7 @@ Tests describe worlds as pictures (`.` dead, `#` player 1, digits for other play
 
 ## User interface
 
-The UI uses [Mantine](https://mantine.dev) (`AppShell` for the layout) and [Phosphor](https://phosphoricons.com) icons. Player colours are separate from the Mantine theme: they come from `Palette` in `src/ui/palette.ts` (OKLCH, 8 players with 8 age shades each).
+The UI uses [Mantine](https://mantine.dev) (`AppShell` for the layout) and [Phosphor](https://phosphoricons.com) icons. Player colours are separate from the Mantine theme: they come from `Palette` in `src/ui/palette.ts` (OKLCH, 8 colours with 8 age shades each).
 
 - `src/game/`: game state with no markup. `useGameMode` is a custom hook holding the world, the mode, the rules and the New game form's visibility; `mode.ts` defines the modes.
 - `src/ui/`: `header/` (title and menu bar), `newgame/` (the New game form), `grid/` (the canvas), `footer/` (the play bar). Components take props down and report events up (for example the header's single `onAction` callback), so they hold no game logic.

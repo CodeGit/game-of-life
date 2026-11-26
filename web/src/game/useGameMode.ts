@@ -21,20 +21,17 @@ export function useGameMode() {
   const [rules, setRules] = useState<Rules>(CONWAY);
   const [speed, setSpeed] = useState(DEFAULT_SPEED);
 
-  // Which controls can be used now. The actions below check it, so a stray call (from a
-  // timer or a keyboard shortcut) cannot do what the buttons would not allow.
+  // Which controls can be used now. Actions check this to ensure the behaviour is compatible with current mode
   const allowed = allowedActions(mode, world !== null);
 
-  // Takes the world to its next generation with the current rules. Changes no mode.
-  // updateWorld changes the world in place, so a shallow copy gives React a new reference to
-  // redraw from (the copy shares the same cell arrays).
+  // Takes the world to its next generation with the current rules. Doesn't alter the mode.
   function nextGeneration() {
     if (!world) return;
     updateWorld(world, rules);
     setWorld({ ...world });
   }
 
-  // Footer: Step. One generation per click, then the game pauses.
+  // Footer: Step. One generation per click, then the game mode updated to pause.
   function stepGame() {
     if (!allowed.step) return;
     nextGeneration();
@@ -67,11 +64,10 @@ export function useGameMode() {
   }
 
   function startGame(newOptions: WorldOptions) {
-    // createWorld picks a seed from the clock when there is none, so fix one now. Otherwise
-    // Reset would get a different random board each time.
-    const resolved = { ...newOptions, seed: newOptions.seed ?? Date.now() };
-    setOptions(resolved);
-    setWorld(createWorld(resolved));
+    // createWorld picks a seed from the clock when there is none, this ensures reset works as desired
+    const updatedOptions = { ...newOptions, seed: newOptions.seed ?? Date.now() };
+    setOptions(updatedOptions);
+    setWorld(createWorld(updatedOptions));
     setMode(MODE.GAME_READY);
     setIsNewGameFormVisible(false);
   }
